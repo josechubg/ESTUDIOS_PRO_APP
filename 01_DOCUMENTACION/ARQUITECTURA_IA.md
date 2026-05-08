@@ -12,6 +12,7 @@ La interfaz estable visual v1 no debe cambiarse para esta fase. La preparacion s
 - `03_APP/services/storageService.js`: lectura, guardado y borrado del estado en `localStorage`.
 - `03_APP/services/aiService.js`: punto unico para chat simulado y futura conexion GPT.
 - `03_APP/services/errorMemoryService.js`: memoria avanzada de errores por contexto en `estudiosProErrorMemory`.
+- `03_APP/services/adaptiveTrainingService.js`: entrenamiento recomendado simulado basado en errores guardados.
 - `03_APP/services/courseService.js`: cursos personalizados y simulacros simulados.
 - `03_APP/services/flashcardService.js`: generacion de flashcards simuladas.
 - `03_APP/services/fileStorageService.js`: metadatos de archivos por bloque en `estudiosProFiles`.
@@ -93,6 +94,19 @@ Uso previsto:
 3. El error se propone para guardar.
 4. El panel de errores prioriza los errores del area activa.
 5. Los futuros ejercicios y flashcards atacan esos errores.
+
+## Entrenamiento adaptativo
+
+En modo simulacion, `adaptiveTrainingService.js` analiza errores del bloque activo y genera recomendaciones sin IA real.
+
+Reglas actuales:
+
+- Muchos errores conceptuales: repaso teorico y flashcards.
+- Errores de procedimiento: ejercicios paso a paso.
+- Errores de memoria: flashcards.
+- Errores de comprension lectora: explicacion guiada.
+- Errores de calculo: ejercicios cortos repetidos.
+- Dificultad alta predominante: mini-simulacro especifico.
 
 ## Como evitar inventar respuestas
 

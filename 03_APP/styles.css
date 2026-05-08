@@ -374,6 +374,19 @@ textarea:focus {
   justify-content: flex-end;
 }
 
+.training-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.training-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
 .focus-view {
   position: fixed;
   inset: 0;
@@ -530,5 +543,9 @@ body[data-agent-theme="gonzalo"] {
 
   .error-actions {
     justify-content: flex-start;
+  }
+
+  .training-grid {
+    grid-template-columns: 1fr;
   }
 }

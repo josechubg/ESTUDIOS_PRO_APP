@@ -71,6 +71,7 @@ Gonzalo esta preparado a nivel de estructura para una fase posterior:
 - Panel de errores frecuentes.
 - Alta manual de errores por alumno, curso, asignatura y subbloque.
 - Acciones de memoria de errores: repasado, superado y eliminar.
+- Entrenamiento recomendado basado en errores del bloque.
 - Creacion simulada de curso personalizado con plan por dias, objetivos, ejercicios, flashcards, errores a vigilar y repaso final.
 - Persistencia local con `localStorage`.
 
@@ -80,6 +81,7 @@ Gonzalo esta preparado a nivel de estructura para una fase posterior:
 - `services/storageService.js`: `localStorage`.
 - `services/aiService.js`: respuestas simuladas y punto futuro de IA real.
 - `services/errorMemoryService.js`: memoria avanzada de errores por contexto.
+- `services/adaptiveTrainingService.js`: entrenamiento recomendado simulado desde errores.
 - `services/courseService.js`: cursos personalizados y simulacros.
 - `services/flashcardService.js`: flashcards simuladas.
 - `services/fileStorageService.js`: metadatos de archivos por alumno, curso, asignatura y subbloque.

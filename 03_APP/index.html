@@ -76,6 +76,9 @@
             <button id="show-errors" class="secondary-button" type="button">
               Ver errores frecuentes
             </button>
+            <button id="show-training" class="secondary-button" type="button">
+              Entrenamiento recomendado
+            </button>
           </div>
 
           <div id="custom-course-section" class="drawer hidden">
@@ -132,6 +135,17 @@
               <input id="file-input" type="file" multiple />
             </label>
             <div id="file-list" class="file-list" aria-live="polite"></div>
+          </div>
+
+          <div id="training-section" class="drawer hidden">
+            <h3>Entrenamiento recomendado</h3>
+            <div id="training-content" class="course-result" aria-live="polite"></div>
+            <div class="training-actions">
+              <button id="training-flashcards" class="secondary-button" type="button">Crear flashcards desde errores</button>
+              <button id="training-mock" class="secondary-button" type="button">Crear mini-simulacro</button>
+              <button id="training-review-block" class="secondary-button" type="button">Marcar bloque como repasado</button>
+              <button id="training-back" class="secondary-button" type="button">Volver</button>
+            </div>
           </div>
         </div>
       </section>

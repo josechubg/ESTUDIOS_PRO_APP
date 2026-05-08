@@ -8,6 +8,7 @@ import {
   markAsReviewed,
   updateError,
 } from "./services/errorMemoryService.js";
+import { generateSimulatedTrainingPlan } from "./services/adaptiveTrainingService.js";
 import {
   buildCoursePlan as buildSimulatedCoursePlan,
   createMockForArea,
@@ -259,6 +260,7 @@ const elements = {
   startStudy: document.querySelector("#start-study"),
   showErrors: document.querySelector("#show-errors"),
   showFiles: document.querySelector("#show-files"),
+  showTraining: document.querySelector("#show-training"),
   sidebarAgentName: document.querySelector("#sidebar-agent-name"),
   sidebarAgentMeta: document.querySelector("#sidebar-agent-meta"),
   sidebarAgentFocus: document.querySelector("#sidebar-agent-focus"),
@@ -296,6 +298,12 @@ const elements = {
   mocksCount: document.querySelector("#mocks-count"),
   errorsList: document.querySelector("#errors-list"),
   errorsSummary: document.querySelector("#errors-summary"),
+  trainingSection: document.querySelector("#training-section"),
+  trainingContent: document.querySelector("#training-content"),
+  trainingFlashcards: document.querySelector("#training-flashcards"),
+  trainingMock: document.querySelector("#training-mock"),
+  trainingReviewBlock: document.querySelector("#training-review-block"),
+  trainingBack: document.querySelector("#training-back"),
   errorForm: document.querySelector("#error-form"),
   errorTitle: document.querySelector("#error-title"),
   errorDescription: document.querySelector("#error-description"),
@@ -728,6 +736,80 @@ function renderErrors() {
   });
 }
 
+function renderTraining() {
+  const plan = generateSimulatedTrainingPlan(activeErrorContext());
+  elements.trainingContent.innerHTML = "";
+
+  const summary = document.createElement("div");
+  summary.className = "training-grid";
+  summary.innerHTML = `
+    <article class="mini-card"><strong>Errores pendientes</strong><span>${plan.pending.length}</span></article>
+    <article class="mini-card"><strong>Errores en repaso</strong><span>${plan.reviewing.length}</span></article>
+    <article class="mini-card"><strong>Tipo mas frecuente</strong><span>${plan.dominantErrorType}</span></article>
+    <article class="mini-card"><strong>Dificultad predominante</strong><span>${plan.dominantDifficulty}</span></article>
+  `;
+
+  const recommendation = document.createElement("article");
+  recommendation.className = "course-summary";
+  recommendation.innerHTML = "<strong>Recomendacion simulada</strong><p></p><ul></ul>";
+  recommendation.querySelector("p").textContent = plan.mainRecommendation;
+  const list = recommendation.querySelector("ul");
+  plan.actions.forEach((action) => {
+    const item = document.createElement("li");
+    item.textContent = action;
+    list.append(item);
+  });
+
+  elements.trainingContent.append(summary, recommendation);
+}
+
+function createFlashcardsFromErrors() {
+  const errors = getErrorsByContext(activeErrorContext());
+  if (errors.length === 0) {
+    addAgentMessage("No hay errores en este bloque para crear flashcards adaptativas.");
+    return;
+  }
+  const cards = errors.slice(0, 8).map((error) => ({
+    front: error.title,
+    back: `${error.description} Tipo: ${error.errorType}. Dificultad: ${error.difficulty}.`,
+    area: activeArea(),
+    status: "desde error",
+    createdAt: new Date().toISOString(),
+  }));
+  activeAgentState().flashcards = [...cards, ...activeAgentState().flashcards].slice(0, 20);
+  addAgentMessage(`Flashcards adaptativas creadas desde ${cards.length} error(es) de ${activeArea()}.`);
+  saveState();
+  render();
+  enterFocusMode("flashcards");
+}
+
+function createMockFromErrors() {
+  const errors = getErrorsByContext(activeErrorContext());
+  const title = `Mini-simulacro adaptativo · ${activeArea()}`;
+  const description =
+    errors.length === 0
+      ? "Simulacro simulado general: no hay errores guardados en este bloque."
+      : `Simulacro simulado centrado en ${errors.length} error(es): ${errors.map((error) => error.title).slice(0, 3).join(", ")}.`;
+  activeAgentState().mocks.unshift({
+    title,
+    description,
+    area: activeArea(),
+    createdAt: new Date().toISOString(),
+  });
+  addAgentMessage(`Mini-simulacro adaptativo creado para ${activeArea()}.`);
+  saveState();
+  render();
+  enterFocusMode("mock");
+}
+
+function markActiveBlockAsReviewed() {
+  const errors = getErrorsByContext(activeErrorContext());
+  errors.forEach((error) => markAsReviewed(error.id));
+  addAgentMessage(`Bloque repasado: ${errors.length} error(es) actualizados.`);
+  render();
+  renderTraining();
+}
+
 function renderErrorSummary(errors) {
   const counts = {
     total: errors.length,
@@ -941,19 +1023,29 @@ elements.startStudy.addEventListener("click", () => setMode("planned"));
 elements.showErrors.addEventListener("click", () => {
   elements.customCourseForm.closest(".drawer").classList.add("hidden");
   document.querySelector("#files-section").classList.add("hidden");
+  elements.trainingSection.classList.add("hidden");
   document.querySelector("#errors-section").classList.toggle("hidden");
 });
 elements.showFiles.addEventListener("click", () => {
   elements.customCourseForm.closest(".drawer").classList.add("hidden");
   document.querySelector("#errors-section").classList.add("hidden");
+  elements.trainingSection.classList.add("hidden");
   document.querySelector("#files-section").classList.toggle("hidden");
   renderFiles();
+});
+elements.showTraining.addEventListener("click", () => {
+  elements.customCourseForm.closest(".drawer").classList.add("hidden");
+  document.querySelector("#errors-section").classList.add("hidden");
+  document.querySelector("#files-section").classList.add("hidden");
+  elements.trainingSection.classList.remove("hidden");
+  renderTraining();
 });
 elements.plannedMode.addEventListener("click", () => setMode("planned"));
 elements.rapidMode.addEventListener("click", () => setMode("rapid"));
 elements.customFocusAction.addEventListener("click", () => {
   document.querySelector("#errors-section").classList.add("hidden");
   document.querySelector("#files-section").classList.add("hidden");
+  elements.trainingSection.classList.add("hidden");
   elements.customCourseForm.closest(".drawer").classList.toggle("hidden");
 });
 elements.mockExamAction.addEventListener("click", createMock);
@@ -1022,6 +1114,13 @@ elements.errorsList.addEventListener("click", (event) => {
   if (button.dataset.errorAction === "solved") updateError(button.dataset.errorId, { status: "superado", lastReviewedAt: new Date().toISOString() });
   if (button.dataset.errorAction === "delete") deleteError(button.dataset.errorId);
   render();
+});
+
+elements.trainingFlashcards.addEventListener("click", createFlashcardsFromErrors);
+elements.trainingMock.addEventListener("click", createMockFromErrors);
+elements.trainingReviewBlock.addEventListener("click", markActiveBlockAsReviewed);
+elements.trainingBack.addEventListener("click", () => {
+  elements.trainingSection.classList.add("hidden");
 });
 
 elements.customCourseForm.addEventListener("submit", (event) => {

@@ -15,6 +15,7 @@ Primera version estable visual de Estudios PRO como app educativa local, clara y
 - Gonzalo preparado como estructura para ESO.
 - Chat simulado, sin IA real.
 - Memoria avanzada de errores por bloque con tipo, dificultad, estado y repasos.
+- Entrenamiento recomendado simulado basado en la memoria de errores.
 - Curso personalizado simulado.
 - Flashcards y simulacros simulados.
 - Accesos visibles restaurados para Flashcards y Simulacro en la pantalla principal.

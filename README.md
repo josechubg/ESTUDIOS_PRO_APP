@@ -50,6 +50,7 @@ http://localhost:5173
 - Subida simulada de archivos por alumno, curso, asignatura y bloque.
 - Errores frecuentes.
 - Memoria avanzada de errores con tipo, dificultad, estado y repasos.
+- Entrenamiento recomendado simulado basado en errores del bloque.
 - Flashcards simuladas.
 - Simulacros simulados.
 - Curso personalizado simulado.
@@ -63,6 +64,7 @@ La app mantiene respuestas simuladas, pero ya separa la logica principal en serv
 - `03_APP/services/storageService.js`: persistencia local.
 - `03_APP/services/aiService.js`: chat simulado y payload futuro para GPT.
 - `03_APP/services/errorMemoryService.js`: memoria avanzada de errores por bloque en `estudiosProErrorMemory`.
+- `03_APP/services/adaptiveTrainingService.js`: resumen y recomendaciones simuladas desde la memoria de errores.
 - `03_APP/services/courseService.js`: cursos personalizados y simulacros.
 - `03_APP/services/flashcardService.js`: flashcards.
 - `03_APP/services/fileStorageService.js`: metadatos de archivos por bloque en `estudiosProFiles`.

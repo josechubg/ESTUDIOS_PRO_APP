@@ -16,6 +16,7 @@ El MVP incluye:
 - Carlota🥰 y Gonzalo preparados como estructuras funcionales iniciales.
 - Chat educativo simulado.
 - Errores frecuentes y memoria avanzada de errores por bloque.
+- Entrenamiento recomendado a partir de la memoria de errores.
 - Flashcards.
 - Simulacros.
 - Curso personalizado simulado.
@@ -161,6 +162,19 @@ La memoria de errores se guarda en `estudiosProErrorMemory` y queda asociada al 
 - subbloque.
 
 Cada error conserva titulo, descripcion, tipo, dificultad, fecha de creacion, ultima revision, numero de repasos y estado. La UI permite registrar errores, marcarlos como repasados, marcarlos como superados y eliminarlos sin mezclar datos entre alumnos o bloques.
+
+## Entrenamiento recomendado
+
+El entrenamiento recomendado es una capa simulada que lee `estudiosProErrorMemory` para el contexto activo y propone acciones segun tipo de error y dificultad.
+
+Debe mostrar:
+
+- errores pendientes;
+- errores en repaso;
+- tipo de error predominante;
+- dificultad predominante;
+- recomendacion simulada;
+- acciones rapidas: flashcards desde errores, mini-simulacro y marcar bloque como repasado.
 
 ## Comportamiento simulado
 
