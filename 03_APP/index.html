@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Estudios PRO</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="simple-app" id="app-shell">
+      <section id="home-screen" class="home-screen" aria-labelledby="home-title">
+        <div class="home-inner">
+          <p class="eyebrow">Estudios PRO</p>
+          <h1 id="home-title">Tu entrenador personal de estudio con IA</h1>
+          <p class="home-copy">
+            Elige alumno, entra en una tarea y estudia con foco. Sin ruido.
+          </p>
+
+          <div class="student-grid" aria-label="Seleccion de alumno">
+            <button class="student-card juan" type="button" data-agent-card="juan">
+              <strong>Juan</strong>
+              <span>Bachillerato / PAU</span>
+            </button>
+            <button class="student-card carlota" type="button" data-agent-card="carlota">
+              <strong>Carlota🥰</strong>
+              <span>Medicina UCV</span>
+            </button>
+            <button class="student-card gonzalo" type="button" data-agent-card="gonzalo">
+              <strong>Gonzalo</strong>
+              <span>ESO</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section id="setup-screen" class="setup-screen hidden" aria-label="Preparar estudio">
+        <div class="top-row">
+          <button id="change-student" class="text-button" type="button">Cambiar alumno</button>
+          <span id="agent-status" class="soft-pill">Simulado</span>
+        </div>
+
+        <div class="setup-card">
+          <p class="eyebrow" id="agent-label">Alumno</p>
+          <h2 id="welcome-title">Juan</h2>
+          <p id="welcome-copy" class="muted-copy">Prepara la sesión y entra a estudiar.</p>
+
+          <div class="select-row">
+            <label>
+              Curso
+              <select id="course-select"></select>
+            </label>
+            <label>
+              Asignatura
+              <select id="subject-select"></select>
+            </label>
+            <label id="block-select-label">
+              Bloque
+              <select id="block-select"></select>
+            </label>
+          </div>
+
+          <div class="primary-actions">
+            <button id="start-study" class="primary-button" type="button">Empezar a estudiar</button>
+            <button id="custom-focus-action" class="secondary-button" type="button">
+              Crear curso personalizado
+            </button>
+            <button id="show-errors" class="secondary-button" type="button">
+              Ver errores frecuentes
+            </button>
+          </div>
+
+          <div id="custom-course-section" class="drawer hidden">
+            <h3>Crear curso personalizado</h3>
+            <form id="custom-course-form" class="custom-course-form">
+              <input id="course-topic" type="text" value="Analisis gramatical" aria-label="Tema del curso" />
+              <input id="course-duration" type="text" value="1 semana" aria-label="Duracion total" />
+              <input id="daily-time" type="text" value="1 hora al dia" aria-label="Tiempo diario disponible" />
+              <select id="current-level" aria-label="Nivel actual">
+                <option value="Inicial">Inicial</option>
+                <option value="Medio" selected>Medio</option>
+                <option value="Avanzado">Avanzado</option>
+              </select>
+              <input id="course-goal" type="text" value="Mejorar precision" aria-label="Objetivo" />
+              <select id="near-exam" aria-label="Examen cercano">
+                <option value="Si" selected>Examen cercano: sí</option>
+                <option value="No">Examen cercano: no</option>
+              </select>
+              <button class="primary-button" type="submit">Generar curso</button>
+            </form>
+            <article id="custom-course-result" class="course-result" aria-live="polite"></article>
+          </div>
+
+          <div id="errors-section" class="drawer hidden">
+            <h3>Errores frecuentes</h3>
+            <ul id="errors-list" class="errors-list"></ul>
+            <form id="error-form" class="error-form">
+              <textarea id="error-input" rows="3" placeholder="Anotar nuevo error..."></textarea>
+              <button class="secondary-button" type="submit">Guardar error</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <section id="focus-view" class="focus-view hidden" aria-label="Modo foco">
+        <div class="focus-layout">
+          <header class="focus-header">
+            <div>
+              <p class="eyebrow" id="focus-kicker">Modo foco</p>
+              <h1 id="focus-title">Estudio programado</h1>
+              <p id="focus-subtitle">Chat central, errores claros y una tarea cada vez.</p>
+            </div>
+            <button id="exit-focus" class="secondary-button" type="button">Salir del modo foco</button>
+          </header>
+
+          <section class="focus-main">
+            <article class="chat-card">
+              <div id="focus-chat-messages" class="chat-messages"></div>
+              <form id="focus-chat-form" class="chat-form">
+                <input id="focus-chat-input" type="text" autocomplete="off" placeholder="Pregunta sobre esta tarea..." />
+                <button class="primary-button" type="submit">Enviar</button>
+              </form>
+            </article>
+
+            <aside class="focus-side">
+              <h2>Errores a vigilar</h2>
+              <div id="focus-errors" class="card-list"></div>
+            </aside>
+          </section>
+        </div>
+      </section>
+
+      <div class="hidden" aria-hidden="true">
+        <button data-agent="juan"></button>
+        <button data-agent="carlota"></button>
+        <button data-agent="gonzalo"></button>
+        <div id="course-list"></div>
+        <div id="subject-list"></div>
+        <div id="block-panel"></div>
+        <div id="block-title"></div>
+        <div id="block-list"></div>
+        <div id="session-title"></div>
+        <button id="planned-mode" type="button"><span></span></button>
+        <button id="rapid-mode" type="button"><span></span></button>
+        <input id="file-input" type="file" multiple />
+        <div id="file-list"></div>
+        <button id="mock-exam-action" type="button"></button>
+        <button id="flashcards-action" type="button"></button>
+        <div id="chat-title"></div>
+        <div id="chat-messages"></div>
+        <form id="chat-form"><input id="chat-input" /><button type="submit"></button></form>
+        <div id="mode-pill"></div>
+        <div id="insight-title"></div>
+        <div id="subject-insights"></div>
+        <div id="flashcards-list"></div>
+        <div id="flashcards-count"></div>
+        <div id="mock-list"></div>
+        <div id="mocks-count"></div>
+        <div id="progress-list"></div>
+        <div id="review-list"></div>
+        <div id="sidebar-agent-name"></div>
+        <div id="sidebar-agent-meta"></div>
+        <div id="sidebar-agent-focus"></div>
+        <div id="metric-progress"></div>
+        <div id="metric-reviews"></div>
+        <div id="metric-errors"></div>
+        <div id="focus-progress-pill"></div>
+        <div id="focus-task-title"></div>
+        <div id="focus-explanation"></div>
+        <div id="focus-exercises"></div>
+        <div id="focus-flashcards"></div>
+        <div id="focus-chat-title"></div>
+      </div>
+    </main>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
