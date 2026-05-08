@@ -14,6 +14,7 @@ La interfaz estable visual v1 no debe cambiarse para esta fase. La preparacion s
 - `03_APP/services/courseService.js`: cursos personalizados y simulacros simulados.
 - `03_APP/services/flashcardService.js`: generacion de flashcards simuladas.
 - `03_APP/config.example.js`: ejemplo de configuracion sin claves reales.
+- `03_APP/.env.example`: plantilla de variables de entorno sin claves reales.
 
 ## Conexion futura con GPT
 
@@ -93,3 +94,5 @@ Reglas de seguridad educativa:
 - `USE_LOCAL_SIMULATION`
 
 No contiene claves reales. Cualquier clave API debe vivir en backend mediante variables de entorno.
+
+La guia de seguridad especifica esta en `01_DOCUMENTACION/SEGURIDAD_API_KEYS.md`.

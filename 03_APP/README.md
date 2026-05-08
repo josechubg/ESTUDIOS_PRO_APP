@@ -80,8 +80,33 @@ Gonzalo esta preparado a nivel de estructura para una fase posterior:
 - `services/courseService.js`: cursos personalizados y simulacros.
 - `services/flashcardService.js`: flashcards simuladas.
 - `config.example.js`: plantilla de configuracion futura sin claves API.
+- `.env.example`: plantilla de variables de entorno sin claves reales.
 
 La conexion con GPT queda preparada a nivel de arquitectura, pero sigue desactivada. Cualquier API real debera llamarse desde backend seguro.
+
+## Modo simulacion
+
+El MVP funciona en modo `simulation`.
+
+- No requiere `.env`.
+- No usa claves API.
+- No llama a OpenAI.
+- Mantiene las respuestas simuladas en `services/aiService.js`.
+
+## Preparar IA real
+
+Cuando exista backend seguro:
+
+1. Copia `03_APP/.env.example` como referencia para las variables necesarias.
+2. Crea un `.env` local solo en el entorno que ejecute el backend.
+3. Guarda ahi `OPENAI_API_KEY`.
+4. Cambia `API_MODE` a `real_api_ready` cuando el backend este preparado.
+5. No pongas claves reales en `config.example.js`, `app.js` ni ningun archivo del frontend.
+
+`config.example.js` documenta los modos disponibles:
+
+- `simulation`: modo actual del MVP.
+- `real_api_ready`: ruta preparada para backend + OpenAI, todavia sin llamada real.
 
 ## Persistencia local
 

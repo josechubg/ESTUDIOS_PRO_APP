@@ -66,6 +66,27 @@ La app mantiene respuestas simuladas, pero ya separa la logica principal en serv
 
 Tambien existe `03_APP/config.example.js` como plantilla sin claves reales. La conexion GPT futura debera hacerse mediante backend seguro, no desde el navegador.
 
+### Modo simulacion
+
+El modo actual es `simulation`. No usa claves API, no llama a OpenAI y mantiene las respuestas simuladas dentro de `03_APP/services/aiService.js`.
+
+Para probar el MVP no hace falta crear `.env`.
+
+### Preparar IA real mas adelante
+
+Cuando se construya el backend, usa `03_APP/.env.example` como plantilla local:
+
+```env
+OPENAI_API_KEY=tu_clave_aqui
+AI_PROVIDER=openai
+AI_MODEL=gpt-5.5-thinking
+API_MODE=simulation
+```
+
+La clave real debe ir solo en un `.env` local o en variables de entorno del servidor. Nunca debe subirse a GitHub ni ponerse en archivos frontend.
+
+Consulta `01_DOCUMENTACION/SEGURIDAD_API_KEYS.md` antes de conectar una API real.
+
 ## Agentes principales
 
 ### Juan — Bachillerato / PAU
@@ -111,6 +132,7 @@ ESTUDIOS_PRO_APP/
 - `01_DOCUMENTACION/DOCUMENTO_MAESTRO_GENERAL.md`
 - `01_DOCUMENTACION/DISEÑO_FUNCIONAL_APP.md`
 - `01_DOCUMENTACION/ARQUITECTURA_IA.md`
+- `01_DOCUMENTACION/SEGURIDAD_API_KEYS.md`
 - `01_DOCUMENTACION/VERSION_ESTABLE_VISUAL_V1.md`
 - `01_DOCUMENTACION/ROADMAP.md`
 - `01_DOCUMENTACION/JUAN_DOCUMENTO_MAESTRO.md`

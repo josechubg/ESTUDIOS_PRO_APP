@@ -1,7 +1,13 @@
 export const AI_RUNTIME = {
-  provider: "simulation",
-  apiMode: "local-simulation",
+  provider: "openai",
+  model: "gpt-5.5-thinking",
+  apiMode: "simulation",
   useLocalSimulation: true,
+};
+
+export const AI_MODES = {
+  SIMULATION: "simulation",
+  REAL_API_READY: "real_api_ready",
 };
 
 export function buildAIRequestPayload({ agentKey, agent, modeName, area, question, scoped = false, files = [], memory = [] }) {
@@ -46,6 +52,31 @@ export function buildSimulatedAnswer(input) {
   return `${scoped ? "Modo foco" : "Respuesta"} en ${area}: ${modeName}, breve, claro, exigente y centrado en examen. ${sourceRule} Pregunta: "${question}".`;
 }
 
-export async function askRealAI() {
-  throw new Error("IA real no conectada todavia. Usa un backend seguro antes de llamar a GPT.");
+export async function askAI(input, options = {}) {
+  const mode = options.apiMode || AI_RUNTIME.apiMode;
+
+  if (mode === AI_MODES.REAL_API_READY) {
+    return askRealAPIReady(input);
+  }
+
+  return buildSimulatedAnswer(input);
+}
+
+export async function askRealAPIReady(input) {
+  const payload = buildAIRequestPayload(input);
+
+  // Punto futuro de conexion:
+  // 1. Enviar este payload a un backend propio, por ejemplo POST /api/ai/chat.
+  // 2. El backend leera OPENAI_API_KEY desde .env local o variables de entorno.
+  // 3. El backend llamara a OpenAI y devolvera una respuesta validada.
+  // 4. El frontend nunca debe conocer ni almacenar claves API.
+  return {
+    mode: AI_MODES.REAL_API_READY,
+    payload,
+    message: "IA real preparada, pero no conectada. Mantener backend seguro antes de llamar a OpenAI.",
+  };
+}
+
+export async function askRealAI(input) {
+  return askRealAPIReady(input);
 }

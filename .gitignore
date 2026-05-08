@@ -20,7 +20,10 @@ build/
 # Environment files
 .env
 .env.*
+*.env
+03_APP/.env
 !.env.example
+!03_APP/.env.example
 
 # Editor / IDE
 .vscode/
@@ -34,4 +37,3 @@ temp/
 # Python local caches
 __pycache__/
 *.py[cod]
-
