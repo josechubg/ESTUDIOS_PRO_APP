@@ -3,9 +3,9 @@ import { buildSimulatedAnswer as buildAIResponse } from "./services/aiService.js
 import { addError, createError, getVisibleErrors } from "./services/errorMemoryService.js";
 import {
   buildCoursePlan as buildSimulatedCoursePlan,
-  createFlashcardsForArea,
   createMockForArea,
 } from "./services/courseService.js";
+import { createFlashcardsForArea } from "./services/flashcardService.js";
 
 const agents = {
   juan: {

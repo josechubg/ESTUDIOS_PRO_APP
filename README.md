@@ -15,6 +15,7 @@ Esta version es un prototipo local sin backend y sin IA real. Usa:
 - JavaScript vanilla
 - datos simulados
 - `localStorage`
+- servicios JS preparados para conectar GPT mas adelante sin exponer claves
 
 La interfaz estable v1 prioriza claridad visual:
 
@@ -52,6 +53,18 @@ http://localhost:5173
 - Curso personalizado simulado.
 - Persistencia local con `localStorage`.
 - Servicios JS preparados para futura conexion de IA.
+
+## Preparacion para IA real
+
+La app mantiene respuestas simuladas, pero ya separa la logica principal en servicios:
+
+- `03_APP/services/storageService.js`: persistencia local.
+- `03_APP/services/aiService.js`: chat simulado y payload futuro para GPT.
+- `03_APP/services/errorMemoryService.js`: memoria de errores.
+- `03_APP/services/courseService.js`: cursos personalizados y simulacros.
+- `03_APP/services/flashcardService.js`: flashcards.
+
+Tambien existe `03_APP/config.example.js` como plantilla sin claves reales. La conexion GPT futura debera hacerse mediante backend seguro, no desde el navegador.
 
 ## Agentes principales
 

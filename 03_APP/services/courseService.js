@@ -26,15 +26,6 @@ export function buildCoursePlan({ agentName, area, topic, duration, dailyTime, l
   };
 }
 
-export function createFlashcardsForArea({ area, studyData }) {
-  return studyData.flashcards.map(([front, back]) => ({
-    front,
-    back,
-    area,
-    createdAt: new Date().toISOString(),
-  }));
-}
-
 export function createMockForArea({ area, studyData }) {
   const mock = studyData.mocks[0];
   return {

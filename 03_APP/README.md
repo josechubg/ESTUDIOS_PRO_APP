@@ -77,7 +77,11 @@ Gonzalo esta preparado a nivel de estructura para una fase posterior:
 - `services/storageService.js`: `localStorage`.
 - `services/aiService.js`: respuestas simuladas y punto futuro de IA real.
 - `services/errorMemoryService.js`: errores frecuentes.
-- `services/courseService.js`: cursos personalizados, flashcards y simulacros.
+- `services/courseService.js`: cursos personalizados y simulacros.
+- `services/flashcardService.js`: flashcards simuladas.
+- `config.example.js`: plantilla de configuracion futura sin claves API.
+
+La conexion con GPT queda preparada a nivel de arquitectura, pero sigue desactivada. Cualquier API real debera llamarse desde backend seguro.
 
 ## Persistencia local
 

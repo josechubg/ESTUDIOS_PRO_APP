@@ -1,32 +1,95 @@
-# ARQUITECTURA IA — ESTUDIOS PRO
+# ARQUITECTURA IA - ESTUDIOS PRO
 
 ## Estado actual
-La app no conecta IA real todavia. La interfaz usa datos simulados y servicios JavaScript preparados para sustituir la simulacion por llamadas reales cuando llegue la fase de API.
 
-## Servicios JS
-- `services/storageService.js`: lectura, guardado y borrado de estado local en `localStorage`.
-- `services/aiService.js`: punto de entrada futuro para IA real. Ahora devuelve respuestas simuladas.
-- `services/errorMemoryService.js`: creacion, filtrado y alta de errores frecuentes.
-- `services/courseService.js`: generacion simulada de cursos, flashcards y simulacros.
+Estudios PRO no conecta IA real todavia. El MVP mantiene una simulacion local para validar producto, interfaz, memoria de errores, flashcards, simulacros y cursos personalizados sin usar claves API.
 
-## Punto futuro de conexion
-La conexion real debe entrar por `aiService.js`.
+La interfaz estable visual v1 no debe cambiarse para esta fase. La preparacion se concentra en servicios JavaScript y documentacion.
 
-Flujo previsto:
-1. UI envia agente, curso, asignatura, bloque, modo y mensaje.
-2. `aiService.js` construye payload con prompts internos.
-3. Backend recibe payload y llama al proveedor de IA.
-4. Backend devuelve respuesta, errores detectados, flashcards o ejercicios.
-5. La app guarda resultado en memoria local o persistencia remota.
+## Servicios de la app
 
-## Prompts internos
-- `02_PROMPTS/PROMPT_SISTEMA_ESTUDIOS_PRO.md`
-- `02_PROMPTS/PROMPT_JUAN.md`
-- `02_PROMPTS/PROMPT_CARLOTA.md`
-- `02_PROMPTS/PROMPT_GONZALO.md`
+- `03_APP/services/storageService.js`: lectura, guardado y borrado del estado en `localStorage`.
+- `03_APP/services/aiService.js`: punto unico para chat simulado y futura conexion GPT.
+- `03_APP/services/errorMemoryService.js`: creacion, filtrado y alta de errores frecuentes.
+- `03_APP/services/courseService.js`: cursos personalizados y simulacros simulados.
+- `03_APP/services/flashcardService.js`: generacion de flashcards simuladas.
+- `03_APP/config.example.js`: ejemplo de configuracion sin claves reales.
 
-## Reglas
-- No incluir claves API en frontend.
-- No llamar IA directamente desde el navegador en produccion.
-- Priorizar archivos subidos antes que fuentes externas.
-- Mantener memoria de errores separada por alumno.
+## Conexion futura con GPT
+
+La app no debe llamar a GPT directamente desde el navegador. El flujo recomendado es:
+
+1. La UI envia a `aiService.js` el alumno, curso, asignatura, bloque, modo, mensaje, archivos disponibles y memoria de errores.
+2. `aiService.js` construye un payload limpio con contexto educativo y prioridad de fuentes.
+3. Un backend seguro recibe el payload.
+4. El backend incorpora prompts internos desde `02_PROMPTS/`.
+5. El backend llama al proveedor de IA usando claves en variables de entorno.
+6. El backend devuelve respuesta, ejercicios, errores detectados, flashcards sugeridas o plan de estudio.
+7. La app guarda los resultados relevantes en `localStorage` durante el MVP y, mas adelante, en base de datos.
+
+## Uso de archivos subidos
+
+En el MVP actual la subida de archivos es simulada y solo se guardan nombres. En la version con IA real:
+
+1. El archivo se enviara al backend.
+2. El backend extraera texto y metadatos.
+3. El contenido se fragmentara por asignatura, bloque, fecha, curso y alumno.
+4. La IA respondera primero con base en esos fragmentos.
+5. Si falta informacion, la IA debera decirlo y pedir el archivo o fuente necesaria.
+
+Los archivos del alumno seran la fuente principal para examenes concretos, apuntes del profesor, criterios de correccion y temas dados en clase.
+
+## Prioridad de fuentes
+
+Orden obligatorio:
+
+1. Archivos subidos por el usuario.
+2. Fuentes oficiales del centro o universidad.
+3. Curriculo oficial, normativa o guias docentes.
+4. Modelos oficiales de examen.
+5. Fuentes fiables.
+6. Redes sociales cualificadas solo como orientacion secundaria.
+
+Si una respuesta depende de una fuente no disponible, la app debe indicarlo con claridad.
+
+## Memoria de errores
+
+La memoria de errores se separa por alumno, curso, asignatura y bloque. Debe guardar:
+
+- Error detectado.
+- Area donde aparece.
+- Estado: pendiente, mejorando o superado.
+- Fecha de deteccion.
+- Ejercicio o respuesta que lo provoco cuando exista.
+- Refuerzo recomendado.
+
+Uso previsto:
+
+1. El alumno responde o pregunta.
+2. La IA detecta un fallo conceptual, procedimental o de expresion.
+3. El error se propone para guardar.
+4. El panel de errores prioriza los errores del area activa.
+5. Los futuros ejercicios y flashcards atacan esos errores.
+
+## Como evitar inventar respuestas
+
+Reglas de seguridad educativa:
+
+- No afirmar datos no presentes en archivos o fuentes fiables.
+- Distinguir entre respuesta segura, inferencia y orientacion.
+- Pedir mas informacion si el enunciado o el archivo no bastan.
+- Corregir al alumno cuando este equivocado.
+- Responder solo al concepto preguntado antes de ampliar.
+- No fabricar criterios de un centro, universidad o PAU si no estan disponibles.
+- En modo examen, avisar cuando una respuesta sea incompleta o no justificable.
+
+## Estado de configuracion
+
+`03_APP/config.example.js` define la forma futura:
+
+- `AI_PROVIDER`
+- `MODEL_NAME`
+- `API_MODE`
+- `USE_LOCAL_SIMULATION`
+
+No contiene claves reales. Cualquier clave API debe vivir en backend mediante variables de entorno.
