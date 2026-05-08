@@ -10,6 +10,7 @@ El MVP incluye:
 
 - Dashboard multiagente.
 - Vista general del agente activo.
+- Estructura dinamica de alumnos, cursos, asignaturas y subbloques desde `03_APP/data/studyStructure.js`.
 - Modo foco por agente, curso y asignatura.
 - Juan completo simulado.
 - Carlota🥰 y Gonzalo preparados como estructuras funcionales iniciales.
@@ -70,6 +71,18 @@ La vista general es el tablero principal del agente activo. Debe permitir entend
 - que progreso y repasos aparecen.
 
 Esta vista no debe prometer inteligencia real. Todos los datos son de validacion y simulacion.
+
+## Estructura de estudio
+
+Los cursos, asignaturas y subbloques se definen en `03_APP/data/studyStructure.js`.
+
+La UI debe leer de esa estructura para:
+
+- actualizar cursos al cambiar de alumno;
+- actualizar asignaturas al cambiar de curso;
+- actualizar bloques al cambiar de asignatura;
+- conservar el ultimo contexto activo en `localStorage` siempre que siga existiendo;
+- corregir automaticamente el contexto si una estructura cambia.
 
 ## Modo foco
 
@@ -148,6 +161,7 @@ Las respuestas no proceden de un modelo de IA real. La subida de archivos no ana
 
 - La app permite cambiar entre Juan, Carlota🥰 y Gonzalo.
 - La app permite seleccionar curso y asignatura segun agente.
+- La app alimenta los selectores desde la estructura dinamica de datos.
 - Juan ofrece una experiencia completa simulada.
 - Carlota🥰 y Gonzalo aparecen preparados, pero no se presentan como completos.
 - La vista general resume el estado de estudio.

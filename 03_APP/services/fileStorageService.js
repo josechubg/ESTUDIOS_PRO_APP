@@ -29,11 +29,15 @@ export function createFileMetadata(file, context) {
 }
 
 export function fileBelongsToContext(file, context) {
+  const courseMatches = file.courseId === context.courseId || file.courseId === context.courseName;
+  const subjectMatches = file.subjectId === context.subjectId || file.subjectId === context.subjectName;
+  const blockMatches = (file.subblockId || "") === (context.subblockId || "") || (file.subblockId || "") === (context.subblockName || "");
+
   return (
     file.studentId === context.studentId &&
-    file.courseId === context.courseId &&
-    file.subjectId === context.subjectId &&
-    (file.subblockId || "") === (context.subblockId || "")
+    courseMatches &&
+    subjectMatches &&
+    blockMatches
   );
 }
 

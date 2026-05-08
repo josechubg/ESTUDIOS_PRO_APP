@@ -75,6 +75,7 @@ Gonzalo esta preparado a nivel de estructura para una fase posterior:
 
 ## Servicios JS preparados
 
+- `data/studyStructure.js`: fuente de verdad para alumnos, cursos, asignaturas y subbloques.
 - `services/storageService.js`: `localStorage`.
 - `services/aiService.js`: respuestas simuladas y punto futuro de IA real.
 - `services/errorMemoryService.js`: errores frecuentes.
@@ -126,6 +127,8 @@ El estado local cubre:
 - Archivos seleccionados en el prototipo.
 - Curso personalizado generado.
 - Datos operativos de flashcards y simulacros derivados del estado activo.
+
+Los selectores de curso, asignatura y bloque se alimentan desde `data/studyStructure.js`. Al cargar estado guardado, la app valida el ultimo contexto activo para evitar quedarse en cursos, asignaturas o bloques que ya no existan en la estructura.
 
 En terminos de producto, la persistencia esperada para la fase es agente/curso/asignatura/chat/errores/flashcards/cursos/simulacros/archivos. Tecnicamente, parte de flashcards y simulacros procede de bancos simulados y se re-renderiza segun agente, curso y asignatura.
 

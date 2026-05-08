@@ -65,6 +65,7 @@ La app mantiene respuestas simuladas, pero ya separa la logica principal en serv
 - `03_APP/services/courseService.js`: cursos personalizados y simulacros.
 - `03_APP/services/flashcardService.js`: flashcards.
 - `03_APP/services/fileStorageService.js`: metadatos de archivos por bloque en `estudiosProFiles`.
+- `03_APP/data/studyStructure.js`: estructura dinamica de alumnos, cursos, asignaturas y subbloques.
 
 Tambien existe `03_APP/config.example.js` como plantilla sin claves reales. La conexion GPT futura debera hacerse mediante backend seguro, no desde el navegador.
 
@@ -123,6 +124,7 @@ ESTUDIOS_PRO_APP/
 │   ├── index.html
 │   ├── styles.css
 │   ├── app.js
+│   ├── data/
 │   └── services/
 ├── 04_DATOS_PRUEBA/
 ├── CHANGELOG.md

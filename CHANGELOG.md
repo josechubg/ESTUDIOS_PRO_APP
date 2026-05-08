@@ -17,6 +17,7 @@ Primera version estable visual de Estudios PRO como app educativa local, clara y
 - Memoria de errores frecuentes.
 - Curso personalizado simulado.
 - Flashcards y simulacros simulados.
+- Accesos visibles restaurados para Flashcards y Simulacro en la pantalla principal.
 - Persistencia local con `localStorage`.
 - Servicios JS preparados para futura IA real.
 - Prompts internos para Estudios PRO, Juan, Carlota🥰 y Gonzalo.
@@ -30,4 +31,3 @@ Primera version estable visual de Estudios PRO como app educativa local, clara y
 - Convertir Gonzalo en agente funcional completo.
 - Añadir tests automatizados.
 - Preparar despliegue web.
-

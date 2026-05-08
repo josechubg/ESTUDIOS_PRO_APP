@@ -11,6 +11,14 @@ import {
   deleteFileMetadata,
   getFilesForContext,
 } from "./services/fileStorageService.js";
+import {
+  ensureValidContext,
+  getBlocksForSubject,
+  getContextIds,
+  getCoursesForAgent,
+  getDefaultContext,
+  getSubjectsForCourse,
+} from "./data/studyStructure.js";
 
 const agents = {
   juan: {
@@ -25,25 +33,6 @@ const agents = {
       "Profesor experto y entrenador academico para examenes del colegio, problemas, comentarios y PAU Region de Murcia.",
     chatName: "Juan · profesor simulado",
     modeNames: { planned: "Estudio programado", rapid: "Estudio ultrarrapido" },
-    courses: {
-      "1º Bachillerato": {
-        "Dibujo Tecnico": ["Sistema diedrico", "Normalizacion", "Geometria plana", "Perspectiva"],
-        Matematicas: ["Funciones", "Trigonometria", "Algebra", "Estadistica"],
-        "Fisica y Quimica": ["Cinematica", "Dinamica", "Estequiometria", "Enlace quimico"],
-        Lengua: ["Literatura", "Analisis gramatical", "Comentario de texto", "Sintaxis", "Morfologia", "PAU Lengua"],
-        Ingles: ["Reading", "Writing", "Grammar", "Use of English"],
-      },
-      "2º Bachillerato": {
-        "Dibujo Tecnico": ["Diedrico avanzado", "Axonometria", "Normalizacion", "PAU Dibujo"],
-        "Matematicas II": ["Matrices", "Integrales", "Vectores", "Probabilidad"],
-        Fisica: ["Campo gravitatorio", "Campo electrico", "Ondas", "Optica"],
-        Lengua: ["Literatura", "Analisis gramatical", "Comentario de texto", "Sintaxis", "Morfologia", "PAU Lengua"],
-        Ingles: ["PAU Reading", "Writing", "Grammar", "Vocabulary"],
-      },
-    },
-    defaultCourse: "1º Bachillerato",
-    defaultSubject: "Dibujo Tecnico",
-    defaultBlock: "Sistema diedrico",
     metrics: { progress: 72, reviews: 3 },
     progress: [
       ["Dibujo Tecnico", 78],
@@ -69,51 +58,6 @@ const agents = {
       "Entrenadora universitaria para apuntes, test avanzado, trampas conceptuales, simulacros y alto rendimiento.",
     chatName: "Carlota · tutora medica simulada",
     modeNames: { planned: "Estudio por bloques", rapid: "Test avanzado express" },
-    courses: {
-      "1º Medicina": {
-        "Anatomia I": ["Osteologia", "Miembro superior", "Torax", "Neuroanatomia basica"],
-        "Biologia Celular": ["Membrana", "Ciclo celular", "Señalizacion", "Apoptosis"],
-        Bioquimica: ["Proteinas", "Enzimas", "Metabolismo", "Bioenergetica"],
-        Histologia: ["Epitelial", "Conectivo", "Muscular", "Nervioso"],
-        "Fisiologia I": ["Homeostasis", "Neurofisiologia", "Sangre", "Cardiovascular basico"],
-      },
-      "2º Medicina": {
-        "Anatomia II": ["Abdomen", "Pelvis", "Cabeza y cuello", "Sistema nervioso"],
-        "Fisiologia II": ["Respiratorio", "Renal", "Digestivo", "Endocrino"],
-        Genetica: ["Herencia", "Mutaciones", "Citogenetica", "Genomica"],
-        Microbiologia: ["Bacterias", "Virus", "Hongos", "Antibioticos"],
-        Inmunologia: ["Innata", "Adaptativa", "Hipersensibilidad", "Autoinmunidad"],
-      },
-      "3º Medicina": {
-        Farmacologia: ["Farmacocinetica", "SNA", "Antibioticos", "Cardiofarmacos"],
-        "Patologia General": ["Inflamacion", "Neoplasia", "Hemodinamica", "Reparacion"],
-        Semiologia: ["Historia clinica", "Exploracion", "Sindromes", "Razonamiento clinico"],
-        Radiologia: ["Torax", "Abdomen", "TAC", "RM"],
-        Epidemiologia: ["Riesgo", "Sesgos", "Estudios", "Cribado"],
-      },
-      "4º Medicina": {
-        Cardiologia: ["ECG", "Insuficiencia cardiaca", "Valvulopatias", "Cardiopatia isquemica"],
-        Neumologia: ["EPOC", "Asma", "TEP", "Neumonia"],
-        Digestivo: ["Hepatologia", "EII", "Pancreas", "Hemorragia digestiva"],
-        Nefrologia: ["IRA", "ERC", "Electrolitos", "Glomerulopatias"],
-        Neurologia: ["Ictus", "Epilepsia", "Cefaleas", "Demencias"],
-      },
-      "5º Medicina": {
-        Pediatria: ["Neonatologia", "Crecimiento", "Infecciones", "Urgencias"],
-        Ginecologia: ["Obstetricia", "Gine oncologica", "Anticoncepcion", "Parto"],
-        Psiquiatria: ["Depresion", "Psicosis", "Ansiedad", "Adicciones"],
-        Traumatologia: ["Fracturas", "Luxaciones", "Columna", "Rodilla"],
-        Dermatologia: ["Lesiones elementales", "Melanoma", "Psoriasis", "Infecciones"],
-      },
-      "6º Medicina": {
-        "Rotatorio Clinico": ["Medicina interna", "Cirugia", "Pediatria", "Urgencias"],
-        Urgencias: ["ABCDE", "Shock", "Sepsis", "Dolor toracico"],
-        ECOE: ["Comunicacion", "Exploracion", "Diagnostico", "Plan terapeutico"],
-      },
-    },
-    defaultCourse: "1º Medicina",
-    defaultSubject: "Anatomia I",
-    defaultBlock: "Osteologia",
     metrics: { progress: 58, reviews: 5 },
     progress: [
       ["Anatomia", 61],
@@ -139,39 +83,6 @@ const agents = {
       "Apoyo claro y dinamico para comprender, practicar paso a paso y reforzar sin infantilizar.",
     chatName: "Gonzalo · apoyo guiado simulado",
     modeNames: { planned: "Aprendizaje guiado", rapid: "Repaso rapido" },
-    courses: {
-      "1º ESO": {
-        Matematicas: ["Numeros enteros", "Fracciones", "Proporcionalidad", "Geometria"],
-        Lengua: ["Comprension lectora", "Morfologia", "Sintaxis simple", "Redaccion"],
-        Ingles: ["Present simple", "Vocabulary", "Reading", "Writing"],
-        "Biologia y Geologia": ["Celula", "Seres vivos", "Ecosistemas", "Geosfera"],
-        "Geografia e Historia": ["Mapas", "Prehistoria", "Edad Antigua", "Climas"],
-      },
-      "2º ESO": {
-        Matematicas: ["Algebra", "Ecuaciones", "Funciones", "Probabilidad"],
-        Lengua: ["Sintaxis", "Literatura", "Texto expositivo", "Ortografia"],
-        Ingles: ["Past simple", "Comparatives", "Listening", "Writing"],
-        "Fisica y Quimica": ["Materia", "Fuerzas", "Energia", "Cambios quimicos"],
-        "Geografia e Historia": ["Edad Media", "Poblacion", "Ciudades", "Arte"],
-      },
-      "3º ESO": {
-        Matematicas: ["Polinomios", "Sistemas", "Funciones", "Estadistica"],
-        Lengua: ["Oracion compuesta", "Comentario", "Literatura medieval", "Léxico"],
-        Ingles: ["Present perfect", "Conditionals", "Reading", "Writing"],
-        "Fisica y Quimica": ["Formulacion", "Movimiento", "Electricidad", "Reacciones"],
-        "Biologia y Geologia": ["Cuerpo humano", "Salud", "Relieve", "Rocas"],
-      },
-      "4º ESO": {
-        Matematicas: ["Funciones", "Trigonometria", "Ecuaciones", "Probabilidad"],
-        Lengua: ["Sintaxis", "Comentario", "Literatura", "Argumentacion"],
-        Ingles: ["Passive", "Reported speech", "Writing", "Use of English"],
-        "Fisica y Quimica": ["Cinematica", "Dinamica", "Quimica", "Energia"],
-        Historia: ["Siglo XIX", "Guerras mundiales", "España contemporanea", "Democracia"],
-      },
-    },
-    defaultCourse: "1º ESO",
-    defaultSubject: "Matematicas",
-    defaultBlock: "Numeros enteros",
     metrics: { progress: 66, reviews: 2 },
     progress: [
       ["Ejercicios guiados", 70],
@@ -333,7 +244,7 @@ const defaultErrors = {
     { area: "Lengua · Sintaxis", text: "No delimitar la subordinada antes de asignar funcion.", status: "pendiente" },
   ],
   carlota: [
-    { area: "Anatomia I", text: "Confundir ramas terminales del plexo braquial.", status: "pendiente" },
+    { area: "Anatomia", text: "Confundir ramas terminales del plexo braquial.", status: "pendiente" },
     { area: "Bioquimica", text: "Fallar preguntas con doble negacion en test avanzado.", status: "mejorando" },
   ],
   gonzalo: [
@@ -422,16 +333,12 @@ const elements = {
   focusChatInput: document.querySelector("#focus-chat-input"),
 };
 
-function firstKey(object) {
-  return Object.keys(object)[0];
-}
-
 function getAgentDefaults(agentKey) {
-  const agent = agents[agentKey];
+  const defaults = getDefaultContext(agentKey);
   return {
-    course: agent.defaultCourse,
-    subject: agent.defaultSubject,
-    block: agent.defaultBlock,
+    course: defaults.defaultCourse,
+    subject: defaults.defaultSubject,
+    block: defaults.defaultBlock,
     mode: "planned",
     chat: [],
     focusChat: [],
@@ -455,7 +362,8 @@ function normalizeState(rawState) {
   const base = getInitialState();
   const next = { ...base, ...rawState, agents: { ...base.agents } };
   Object.keys(agents).forEach((key) => {
-    next.agents[key] = { ...base.agents[key], ...(rawState?.agents?.[key] || {}) };
+    const merged = { ...base.agents[key], ...(rawState?.agents?.[key] || {}) };
+    next.agents[key] = { ...merged, ...ensureValidContext(key, merged) };
   });
   return next;
 }
@@ -498,9 +406,8 @@ function activeAgentState() {
 }
 
 function currentBlocks() {
-  const agent = activeAgent();
   const agentState = activeAgentState();
-  return agent.courses[agentState.course]?.[agentState.subject] || [];
+  return getBlocksForSubject(activeAgentKey(), agentState.course, agentState.subject).map((block) => block.name);
 }
 
 function activeArea() {
@@ -512,18 +419,34 @@ function activeArea() {
 }
 
 function getStudyData(area = activeArea()) {
-  return defaultsByArea[area] || defaultsByArea[activeAgentState().subject] || defaultsByArea.Matematicas;
+  const subjectFallbacks = {
+    Anatomia: "Anatomia I",
+  };
+  const subject = activeAgentState().subject;
+  return defaultsByArea[area] || defaultsByArea[subject] || defaultsByArea[subjectFallbacks[subject]] || defaultsByArea.Matematicas;
+}
+
+function firstSubjectName(course) {
+  return getSubjectsForCourse(activeAgentKey(), course)[0]?.name || "";
+}
+
+function firstBlockName(course, subject) {
+  return getBlocksForSubject(activeAgentKey(), course, subject)[0]?.name || "";
 }
 
 function activeFileContext() {
   const agentState = activeAgentState();
   const blocks = currentBlocks();
+  const contextIds = getContextIds(activeAgentKey(), agentState);
   return {
     studentId: activeAgentKey(),
     studentName: activeAgent().name,
-    courseId: agentState.course,
-    subjectId: agentState.subject,
-    subblockId: blocks.length > 0 ? agentState.block : "",
+    courseId: contextIds.courseId,
+    subjectId: contextIds.subjectId,
+    subblockId: blocks.length > 0 ? contextIds.subblockId : "",
+    courseName: agentState.course,
+    subjectName: agentState.subject,
+    subblockName: blocks.length > 0 ? agentState.block : "",
   };
 }
 
@@ -571,11 +494,11 @@ function renderShell() {
 }
 
 function renderCourses() {
-  const agent = activeAgent();
   const agentState = activeAgentState();
   elements.courseList.innerHTML = "";
   elements.courseSelect.innerHTML = "";
-  Object.keys(agent.courses).forEach((course) => {
+  getCoursesForAgent(activeAgentKey()).forEach((courseItem) => {
+    const course = courseItem.name;
     const option = document.createElement("option");
     option.value = course;
     option.textContent = course;
@@ -585,8 +508,8 @@ function renderCourses() {
     elements.courseList.append(
       createButton(course, "choice-button", course === agentState.course, () => {
         agentState.course = course;
-        agentState.subject = firstKey(agent.courses[course]);
-        agentState.block = agent.courses[course][agentState.subject][0];
+        agentState.subject = firstSubjectName(course);
+        agentState.block = firstBlockName(agentState.course, agentState.subject);
         addAgentMessage(`Curso cambiado a ${course}. Empezamos por ${agentState.subject}.`);
         saveState();
         render();
@@ -596,12 +519,12 @@ function renderCourses() {
 }
 
 function renderSubjectsAndBlocks() {
-  const agent = activeAgent();
   const agentState = activeAgentState();
-  const subjects = agent.courses[agentState.course] || {};
+  const subjects = getSubjectsForCourse(activeAgentKey(), agentState.course);
   elements.subjectList.innerHTML = "";
   elements.subjectSelect.innerHTML = "";
-  Object.keys(subjects).forEach((subject) => {
+  subjects.forEach((subjectItem) => {
+    const subject = subjectItem.name;
     const option = document.createElement("option");
     option.value = subject;
     option.textContent = subject;
@@ -611,7 +534,7 @@ function renderSubjectsAndBlocks() {
     elements.subjectList.append(
       createButton(subject, "subject-button", subject === agentState.subject, () => {
         agentState.subject = subject;
-        agentState.block = subjects[subject][0];
+        agentState.block = firstBlockName(agentState.course, subject);
         addAgentMessage(`Asignatura activa: ${activeArea()}. Elige modo o entra en foco.`);
         saveState();
         render();
@@ -685,7 +608,7 @@ function renderModeButtons() {
 function renderFiles() {
   const context = activeFileContext();
   const files = getFilesForContext(context);
-  const contextText = [context.studentName, context.courseId, context.subjectId, context.subblockId].filter(Boolean).join(" · ");
+  const contextText = [context.studentName, context.courseName, context.subjectName, context.subblockName].filter(Boolean).join(" · ");
   elements.fileContext.textContent = `${contextText}. Solo se guardan metadatos; el contenido no se procesa todavia.`;
   elements.fileList.innerHTML = "";
 
@@ -942,19 +865,17 @@ elements.navButtons.forEach((button) => button.addEventListener("click", () => s
 elements.agentCards.forEach((button) => button.addEventListener("click", () => setAgent(button.dataset.agentCard)));
 elements.changeStudent.addEventListener("click", showHome);
 elements.courseSelect.addEventListener("change", () => {
-  const agent = activeAgent();
   const agentState = activeAgentState();
   agentState.course = elements.courseSelect.value;
-  agentState.subject = firstKey(agent.courses[agentState.course]);
-  agentState.block = agent.courses[agentState.course][agentState.subject][0];
+  agentState.subject = firstSubjectName(agentState.course);
+  agentState.block = firstBlockName(agentState.course, agentState.subject);
   saveState();
   render();
 });
 elements.subjectSelect.addEventListener("change", () => {
-  const agent = activeAgent();
   const agentState = activeAgentState();
   agentState.subject = elements.subjectSelect.value;
-  agentState.block = agent.courses[agentState.course][agentState.subject][0];
+  agentState.block = firstBlockName(agentState.course, agentState.subject);
   saveState();
   render();
 });

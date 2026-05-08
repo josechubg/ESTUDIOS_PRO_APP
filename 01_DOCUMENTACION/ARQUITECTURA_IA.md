@@ -8,6 +8,7 @@ La interfaz estable visual v1 no debe cambiarse para esta fase. La preparacion s
 
 ## Servicios de la app
 
+- `03_APP/data/studyStructure.js`: estructura dinamica de alumnos, cursos, asignaturas y subbloques.
 - `03_APP/services/storageService.js`: lectura, guardado y borrado del estado en `localStorage`.
 - `03_APP/services/aiService.js`: punto unico para chat simulado y futura conexion GPT.
 - `03_APP/services/errorMemoryService.js`: creacion, filtrado y alta de errores frecuentes.
