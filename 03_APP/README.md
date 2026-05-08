@@ -63,6 +63,7 @@ Gonzalo esta preparado a nivel de estructura para una fase posterior:
 - Seleccion de curso segun agente.
 - Seleccion de asignatura.
 - Subbloques especificos para Lengua: Literatura, Analisis gramatical, Comentario de texto, Sintaxis, Morfologia y PAU Lengua.
+- Subida simulada de archivos asociada a alumno, curso, asignatura y subbloque.
 - Botones de subir archivos, estudio programado y estudio ultrarrapido.
 - Chat educativo simulado.
 - Flashcards.
@@ -79,6 +80,7 @@ Gonzalo esta preparado a nivel de estructura para una fase posterior:
 - `services/errorMemoryService.js`: errores frecuentes.
 - `services/courseService.js`: cursos personalizados y simulacros.
 - `services/flashcardService.js`: flashcards simuladas.
+- `services/fileStorageService.js`: metadatos de archivos por alumno, curso, asignatura y subbloque.
 - `config.example.js`: plantilla de configuracion futura sin claves API.
 - `.env.example`: plantilla de variables de entorno sin claves reales.
 
@@ -125,7 +127,30 @@ El estado local cubre:
 - Curso personalizado generado.
 - Datos operativos de flashcards y simulacros derivados del estado activo.
 
-En terminos de producto, la persistencia esperada para la fase es agente/curso/asignatura/chat/errores/flashcards/cursos/simulacros. Tecnicamente, parte de flashcards y simulacros procede de bancos simulados y se re-renderiza segun agente, curso y asignatura.
+En terminos de producto, la persistencia esperada para la fase es agente/curso/asignatura/chat/errores/flashcards/cursos/simulacros/archivos. Tecnicamente, parte de flashcards y simulacros procede de bancos simulados y se re-renderiza segun agente, curso y asignatura.
+
+## Archivos por asignatura
+
+La seccion "Archivos del bloque" permite seleccionar archivos desde el ordenador con `input type=file`.
+
+El MVP no guarda contenido ni procesa PDFs. Solo registra metadatos:
+
+- `id`;
+- `fileName`;
+- `mimeType`;
+- `sizeBytes`;
+- `uploadedAt`;
+- `studentId`;
+- `courseId`;
+- `subjectId`;
+- `subblockId`;
+- `status`: pendiente de procesamiento.
+
+El listado se filtra por el contexto activo. Si cambias de asignatura o subbloque, solo aparecen los archivos de ese bloque concreto.
+
+La clave de almacenamiento separada es `estudiosProFiles`.
+
+No subas a GitHub archivos reales de apuntes, examenes, PDFs privados o documentos personales.
 
 ## Estado del MVP Juan
 
@@ -145,6 +170,7 @@ El MVP Juan ya es una version amplia de validacion. Incluye:
 
 - No hay IA real.
 - La subida de archivos solo muestra o registra nombres; no analiza contenido real.
+- La subida de archivos guarda metadatos locales, no contenido completo.
 - El chat no consulta modelos de IA ni fuentes externas.
 - No hay backend, autenticacion ni sincronizacion entre dispositivos.
 - Carlota🥰 y Gonzalo tienen estructura preparada y asignaturas simuladas, pero no la profundidad funcional de Juan.

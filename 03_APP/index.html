@@ -61,6 +61,9 @@
 
           <div class="primary-actions">
             <button id="start-study" class="primary-button" type="button">Empezar a estudiar</button>
+            <button id="show-files" class="secondary-button" type="button">
+              Subir archivos
+            </button>
             <button id="custom-focus-action" class="secondary-button" type="button">
               Crear curso personalizado
             </button>
@@ -97,6 +100,16 @@
               <textarea id="error-input" rows="3" placeholder="Anotar nuevo error..."></textarea>
               <button class="secondary-button" type="submit">Guardar error</button>
             </form>
+          </div>
+
+          <div id="files-section" class="drawer hidden">
+            <h3>Archivos del bloque</h3>
+            <p id="file-context" class="drawer-copy"></p>
+            <label class="file-picker">
+              <span>Seleccionar archivos</span>
+              <input id="file-input" type="file" multiple />
+            </label>
+            <div id="file-list" class="file-list" aria-live="polite"></div>
           </div>
         </div>
       </section>
@@ -141,8 +154,6 @@
         <div id="session-title"></div>
         <button id="planned-mode" type="button"><span></span></button>
         <button id="rapid-mode" type="button"><span></span></button>
-        <input id="file-input" type="file" multiple />
-        <div id="file-list"></div>
         <button id="mock-exam-action" type="button"></button>
         <button id="flashcards-action" type="button"></button>
         <div id="chat-title"></div>

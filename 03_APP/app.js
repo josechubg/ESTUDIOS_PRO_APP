@@ -6,6 +6,11 @@ import {
   createMockForArea,
 } from "./services/courseService.js";
 import { createFlashcardsForArea } from "./services/flashcardService.js";
+import {
+  addFilesForContext,
+  deleteFileMetadata,
+  getFilesForContext,
+} from "./services/fileStorageService.js";
 
 const agents = {
   juan: {
@@ -352,6 +357,7 @@ const elements = {
   blockSelectLabel: document.querySelector("#block-select-label"),
   startStudy: document.querySelector("#start-study"),
   showErrors: document.querySelector("#show-errors"),
+  showFiles: document.querySelector("#show-files"),
   sidebarAgentName: document.querySelector("#sidebar-agent-name"),
   sidebarAgentMeta: document.querySelector("#sidebar-agent-meta"),
   sidebarAgentFocus: document.querySelector("#sidebar-agent-focus"),
@@ -373,6 +379,7 @@ const elements = {
   customFocusAction: document.querySelector("#custom-focus-action"),
   fileInput: document.querySelector("#file-input"),
   fileList: document.querySelector("#file-list"),
+  fileContext: document.querySelector("#file-context"),
   mockExamAction: document.querySelector("#mock-exam-action"),
   flashcardsAction: document.querySelector("#flashcards-action"),
   chatTitle: document.querySelector("#chat-title"),
@@ -506,6 +513,24 @@ function activeArea() {
 
 function getStudyData(area = activeArea()) {
   return defaultsByArea[area] || defaultsByArea[activeAgentState().subject] || defaultsByArea.Matematicas;
+}
+
+function activeFileContext() {
+  const agentState = activeAgentState();
+  const blocks = currentBlocks();
+  return {
+    studentId: activeAgentKey(),
+    studentName: activeAgent().name,
+    courseId: agentState.course,
+    subjectId: agentState.subject,
+    subblockId: blocks.length > 0 ? agentState.block : "",
+  };
+}
+
+function formatFileSize(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function setAgent(agentKey) {
@@ -658,9 +683,47 @@ function renderModeButtons() {
 }
 
 function renderFiles() {
-  const files = activeAgentState().files;
-  elements.fileList.textContent =
-    files.length === 0 ? "Todavia no hay archivos subidos." : `Archivos simulados para ${activeAgent().name}: ${files.join(", ")}.`;
+  const context = activeFileContext();
+  const files = getFilesForContext(context);
+  const contextText = [context.studentName, context.courseId, context.subjectId, context.subblockId].filter(Boolean).join(" · ");
+  elements.fileContext.textContent = `${contextText}. Solo se guardan metadatos; el contenido no se procesa todavia.`;
+  elements.fileList.innerHTML = "";
+
+  if (files.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "drawer-copy";
+    empty.textContent = "Todavia no hay archivos para este bloque.";
+    elements.fileList.append(empty);
+    return;
+  }
+
+  files.forEach((file) => {
+    const item = document.createElement("article");
+    item.className = "file-item";
+    item.innerHTML = `
+      <div>
+        <strong></strong>
+        <div class="file-meta">
+          <span></span>
+          <span></span>
+          <span class="status-pill"></span>
+        </div>
+      </div>
+      <button class="secondary-button" type="button" data-delete-file="">Eliminar</button>
+    `;
+    item.querySelector("strong").textContent = file.fileName;
+    item.querySelector(".file-meta span:nth-child(1)").textContent = file.mimeType;
+    item.querySelector(".file-meta span:nth-child(2)").textContent = `${formatFileSize(file.sizeBytes)} · ${new Date(file.uploadedAt).toLocaleDateString("es-ES")}`;
+    item.querySelector(".status-pill").textContent = file.status;
+    item.querySelector("[data-delete-file]").dataset.deleteFile = file.id;
+    elements.fileList.append(item);
+  });
+}
+
+function deleteFile(fileId) {
+  deleteFileMetadata(fileId);
+  renderFiles();
+  addAgentMessage("Archivo eliminado del listado local. No habia contenido guardado.");
 }
 
 function renderChat() {
@@ -903,12 +966,20 @@ elements.blockSelect.addEventListener("change", () => {
 elements.startStudy.addEventListener("click", () => setMode("planned"));
 elements.showErrors.addEventListener("click", () => {
   elements.customCourseForm.closest(".drawer").classList.add("hidden");
+  document.querySelector("#files-section").classList.add("hidden");
   document.querySelector("#errors-section").classList.toggle("hidden");
+});
+elements.showFiles.addEventListener("click", () => {
+  elements.customCourseForm.closest(".drawer").classList.add("hidden");
+  document.querySelector("#errors-section").classList.add("hidden");
+  document.querySelector("#files-section").classList.toggle("hidden");
+  renderFiles();
 });
 elements.plannedMode.addEventListener("click", () => setMode("planned"));
 elements.rapidMode.addEventListener("click", () => setMode("rapid"));
 elements.customFocusAction.addEventListener("click", () => {
   document.querySelector("#errors-section").classList.add("hidden");
+  document.querySelector("#files-section").classList.add("hidden");
   elements.customCourseForm.closest(".drawer").classList.toggle("hidden");
 });
 elements.mockExamAction.addEventListener("click", createMock);
@@ -916,10 +987,16 @@ elements.flashcardsAction.addEventListener("click", createFlashcards);
 elements.exitFocus.addEventListener("click", exitFocusMode);
 
 elements.fileInput.addEventListener("change", (event) => {
-  activeAgentState().files = Array.from(event.target.files).map((file) => file.name);
-  saveState();
+  const files = addFilesForContext(Array.from(event.target.files), activeFileContext());
+  event.target.value = "";
   renderFiles();
-  addAgentMessage("Archivos recibidos. En este MVP solo guardo los nombres; el analisis real llegara con IA.");
+  addAgentMessage(`${files.length} archivo(s) asociados a ${activeArea()}. Solo guardo metadatos; el analisis real llegara con IA.`);
+});
+
+elements.fileList.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-delete-file]");
+  if (!button) return;
+  deleteFile(button.dataset.deleteFile);
 });
 
 elements.chatForm.addEventListener("submit", (event) => {

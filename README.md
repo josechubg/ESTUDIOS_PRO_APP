@@ -47,6 +47,7 @@ http://localhost:5173
 - Seleccion de bloque o subbloque.
 - Modo foco con chat central.
 - Chat simulado.
+- Subida simulada de archivos por alumno, curso, asignatura y bloque.
 - Errores frecuentes.
 - Flashcards simuladas.
 - Simulacros simulados.
@@ -63,6 +64,7 @@ La app mantiene respuestas simuladas, pero ya separa la logica principal en serv
 - `03_APP/services/errorMemoryService.js`: memoria de errores.
 - `03_APP/services/courseService.js`: cursos personalizados y simulacros.
 - `03_APP/services/flashcardService.js`: flashcards.
+- `03_APP/services/fileStorageService.js`: metadatos de archivos por bloque en `estudiosProFiles`.
 
 Tambien existe `03_APP/config.example.js` como plantilla sin claves reales. La conexion GPT futura debera hacerse mediante backend seguro, no desde el navegador.
 
@@ -144,6 +146,8 @@ ESTUDIOS_PRO_APP/
 - No hay claves API.
 - No hay backend.
 - La subida de archivos esta simulada.
+- Solo se guardan metadatos de archivos en `localStorage`; no se guarda el contenido completo.
+- No deben subirse a GitHub archivos reales de apuntes, examenes o documentos privados.
 - El chat responde con mensajes simulados.
 - `localStorage` no es memoria segura ni sincronizada.
 

@@ -13,6 +13,7 @@ La interfaz estable visual v1 no debe cambiarse para esta fase. La preparacion s
 - `03_APP/services/errorMemoryService.js`: creacion, filtrado y alta de errores frecuentes.
 - `03_APP/services/courseService.js`: cursos personalizados y simulacros simulados.
 - `03_APP/services/flashcardService.js`: generacion de flashcards simuladas.
+- `03_APP/services/fileStorageService.js`: metadatos de archivos por bloque en `estudiosProFiles`.
 - `03_APP/config.example.js`: ejemplo de configuracion sin claves reales.
 - `03_APP/.env.example`: plantilla de variables de entorno sin claves reales.
 
@@ -30,13 +31,30 @@ La app no debe llamar a GPT directamente desde el navegador. El flujo recomendad
 
 ## Uso de archivos subidos
 
-En el MVP actual la subida de archivos es simulada y solo se guardan nombres. En la version con IA real:
+En el MVP actual la subida de archivos es simulada. Solo se guardan metadatos en `localStorage`, en la clave `estudiosProFiles`, asociados a:
+
+- alumno;
+- curso;
+- asignatura;
+- subbloque;
+- fecha;
+- tipo;
+- tamaño;
+- estado.
+
+No se guarda el contenido completo del archivo y no se procesan PDFs todavia.
+
+Los archivos reales del alumno no deben subirse a GitHub. Cuando exista backend, deberan guardarse en almacenamiento privado y con controles de acceso.
+
+En la version con IA real:
 
 1. El archivo se enviara al backend.
-2. El backend extraera texto y metadatos.
-3. El contenido se fragmentara por asignatura, bloque, fecha, curso y alumno.
-4. La IA respondera primero con base en esos fragmentos.
-5. Si falta informacion, la IA debera decirlo y pedir el archivo o fuente necesaria.
+2. El backend guardara el fichero o lo procesara en una zona segura.
+3. El backend extraera texto y metadatos.
+4. El contenido se fragmentara por asignatura, bloque, fecha, curso y alumno.
+5. Los fragmentos quedaran asociados al mismo contexto educativo usado por el MVP.
+6. La IA respondera primero con base en esos fragmentos.
+7. Si falta informacion, la IA debera decirlo y pedir el archivo o fuente necesaria.
 
 Los archivos del alumno seran la fuente principal para examenes concretos, apuntes del profesor, criterios de correccion y temas dados en clase.
 

@@ -18,6 +18,7 @@ El MVP incluye:
 - Flashcards.
 - Simulacros.
 - Curso personalizado simulado.
+- Subida simulada de archivos por alumno, curso, asignatura y subbloque.
 - Persistencia local con `localStorage`.
 
 El MVP no incluye:
@@ -28,6 +29,7 @@ El MVP no incluye:
 - Base de datos remota.
 - Sincronizacion entre dispositivos.
 - Analisis real del contenido de archivos.
+- Guardado del contenido completo de archivos.
 
 ## Agentes
 
@@ -108,13 +110,39 @@ Debe conservar como minimo:
 - simulacros;
 - archivos o referencias de archivos del prototipo.
 
+## Archivos de asignatura
+
+La app debe permitir seleccionar archivos desde el ordenador y asociarlos al contexto educativo activo:
+
+- alumno activo;
+- curso activo;
+- asignatura activa;
+- subbloque activo, si existe.
+
+En el MVP solo se guardan metadatos en `localStorage`, en la clave `estudiosProFiles`:
+
+- `id`;
+- `fileName`;
+- `mimeType`;
+- `sizeBytes`;
+- `uploadedAt`;
+- `studentId`;
+- `courseId`;
+- `subjectId`;
+- `subblockId`;
+- `status`.
+
+El listado visible debe filtrarse por el contexto activo. Al cambiar de asignatura o subbloque, no deben mostrarse archivos de otros bloques.
+
+Cada archivo puede eliminarse del listado local. Esta accion solo borra los metadatos guardados en el navegador.
+
 Esta persistencia es solo local al navegador. No debe tratarse como memoria segura, historico definitivo ni informacion sincronizada.
 
 ## Comportamiento simulado
 
 El chat, las recomendaciones, los simulacros, las flashcards, los planes personalizados y las metricas deben entenderse como simulaciones de producto.
 
-Las respuestas no proceden de un modelo de IA real. La subida de archivos no analiza contenido. Cualquier texto de "correccion", "plan", "repaso" o "recomendacion" sirve para validar experiencia, tono y flujo.
+Las respuestas no proceden de un modelo de IA real. La subida de archivos no analiza contenido ni guarda el archivo completo. Cualquier texto de "correccion", "plan", "repaso" o "recomendacion" sirve para validar experiencia, tono y flujo.
 
 ## Criterios de aceptacion
 
@@ -125,4 +153,5 @@ Las respuestas no proceden de un modelo de IA real. La subida de archivos no ana
 - La vista general resume el estado de estudio.
 - El modo foco orienta la experiencia a curso/asignatura.
 - `localStorage` conserva el estado principal.
+- Los archivos se listan solo en su alumno, curso, asignatura y subbloque.
 - No hay mensajes que prometan IA real, analisis real de archivos o sincronizacion.
