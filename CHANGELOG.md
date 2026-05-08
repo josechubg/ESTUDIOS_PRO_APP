@@ -14,7 +14,7 @@ Primera version estable visual de Estudios PRO como app educativa local, clara y
 - Carlota🥰 preparada como estructura para Medicina UCV.
 - Gonzalo preparado como estructura para ESO.
 - Chat simulado, sin IA real.
-- Memoria de errores frecuentes.
+- Memoria avanzada de errores por bloque con tipo, dificultad, estado y repasos.
 - Curso personalizado simulado.
 - Flashcards y simulacros simulados.
 - Accesos visibles restaurados para Flashcards y Simulacro en la pantalla principal.
@@ -31,3 +31,7 @@ Primera version estable visual de Estudios PRO como app educativa local, clara y
 - Convertir Gonzalo en agente funcional completo.
 - Añadir tests automatizados.
 - Preparar despliegue web.
+
+### Nota de desarrollo
+
+- Tras cambios en JavaScript o modulos ES, puede ser necesaria una recarga completa del navegador para evitar cache local.

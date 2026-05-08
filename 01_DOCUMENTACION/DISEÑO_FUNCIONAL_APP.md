@@ -15,7 +15,7 @@ El MVP incluye:
 - Juan completo simulado.
 - Carlota🥰 y Gonzalo preparados como estructuras funcionales iniciales.
 - Chat educativo simulado.
-- Errores frecuentes.
+- Errores frecuentes y memoria avanzada de errores por bloque.
 - Flashcards.
 - Simulacros.
 - Curso personalizado simulado.
@@ -150,6 +150,17 @@ El listado visible debe filtrarse por el contexto activo. Al cambiar de asignatu
 Cada archivo puede eliminarse del listado local. Esta accion solo borra los metadatos guardados en el navegador.
 
 Esta persistencia es solo local al navegador. No debe tratarse como memoria segura, historico definitivo ni informacion sincronizada.
+
+## Memoria de errores
+
+La memoria de errores se guarda en `estudiosProErrorMemory` y queda asociada al contexto activo:
+
+- alumno;
+- curso;
+- asignatura;
+- subbloque.
+
+Cada error conserva titulo, descripcion, tipo, dificultad, fecha de creacion, ultima revision, numero de repasos y estado. La UI permite registrar errores, marcarlos como repasados, marcarlos como superados y eliminarlos sin mezclar datos entre alumnos o bloques.
 
 ## Comportamiento simulado
 

@@ -69,7 +69,8 @@ Gonzalo esta preparado a nivel de estructura para una fase posterior:
 - Flashcards.
 - Simulacros.
 - Panel de errores frecuentes.
-- Alta manual de nuevos errores por asignatura.
+- Alta manual de errores por alumno, curso, asignatura y subbloque.
+- Acciones de memoria de errores: repasado, superado y eliminar.
 - Creacion simulada de curso personalizado con plan por dias, objetivos, ejercicios, flashcards, errores a vigilar y repaso final.
 - Persistencia local con `localStorage`.
 
@@ -78,7 +79,7 @@ Gonzalo esta preparado a nivel de estructura para una fase posterior:
 - `data/studyStructure.js`: fuente de verdad para alumnos, cursos, asignaturas y subbloques.
 - `services/storageService.js`: `localStorage`.
 - `services/aiService.js`: respuestas simuladas y punto futuro de IA real.
-- `services/errorMemoryService.js`: errores frecuentes.
+- `services/errorMemoryService.js`: memoria avanzada de errores por contexto.
 - `services/courseService.js`: cursos personalizados y simulacros.
 - `services/flashcardService.js`: flashcards simuladas.
 - `services/fileStorageService.js`: metadatos de archivos por alumno, curso, asignatura y subbloque.
@@ -115,6 +116,8 @@ Cuando exista backend seguro:
 
 La clave de almacenamiento del MVP es `estudiosProMvpStateV3`.
 
+La memoria avanzada de errores usa `estudiosProErrorMemory`.
+
 El estado local cubre:
 
 - Agente activo.
@@ -123,7 +126,7 @@ El estado local cubre:
 - Subbloque de Lengua cuando aplica.
 - Modo de estudio activo.
 - Chat por agente.
-- Errores frecuentes por agente.
+- Errores por alumno, curso, asignatura y subbloque.
 - Archivos seleccionados en el prototipo.
 - Curso personalizado generado.
 - Datos operativos de flashcards y simulacros derivados del estado activo.
@@ -167,7 +170,7 @@ El MVP Juan ya es una version amplia de validacion. Incluye:
 - Errores frecuentes.
 - Alta manual de errores.
 - Curso personalizado simulado.
-- Memoria de errores basica apoyada en almacenamiento local.
+- Memoria avanzada de errores apoyada en almacenamiento local.
 
 ## Limitaciones actuales
 

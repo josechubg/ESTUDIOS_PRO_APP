@@ -101,9 +101,25 @@
 
           <div id="errors-section" class="drawer hidden">
             <h3>Errores frecuentes</h3>
+            <div id="errors-summary" class="error-summary" aria-live="polite"></div>
             <ul id="errors-list" class="errors-list"></ul>
             <form id="error-form" class="error-form">
-              <textarea id="error-input" rows="3" placeholder="Anotar nuevo error..."></textarea>
+              <input id="error-title" type="text" placeholder="Titulo del error" aria-label="Titulo del error" />
+              <textarea id="error-description" rows="3" placeholder="Descripcion breve..." aria-label="Descripcion del error"></textarea>
+              <select id="error-type" aria-label="Tipo de error">
+                <option value="conceptual">conceptual</option>
+                <option value="calculo">calculo</option>
+                <option value="comprension lectora">comprension lectora</option>
+                <option value="memoria">memoria</option>
+                <option value="procedimiento">procedimiento</option>
+                <option value="expresion escrita">expresion escrita</option>
+                <option value="otro">otro</option>
+              </select>
+              <select id="error-difficulty" aria-label="Dificultad">
+                <option value="baja">baja</option>
+                <option value="media" selected>media</option>
+                <option value="alta">alta</option>
+              </select>
               <button class="secondary-button" type="submit">Guardar error</button>
             </form>
           </div>

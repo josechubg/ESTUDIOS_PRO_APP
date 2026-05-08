@@ -313,7 +313,6 @@ textarea:focus {
 .course-summary,
 .plan-day,
 .review-block,
-.errors-list li,
 .mini-card {
   padding: 14px;
   border-radius: 18px;
@@ -338,6 +337,41 @@ textarea:focus {
 .error-form {
   display: grid;
   gap: 12px;
+}
+
+.error-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.error-summary span,
+.error-card {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.error-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  line-height: 1.5;
+}
+
+.error-card p {
+  margin: 8px 0 0;
+  color: var(--muted);
+}
+
+.error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 .focus-view {
@@ -488,5 +522,13 @@ body[data-agent-theme="gonzalo"] {
 
   .file-item {
     grid-template-columns: 1fr;
+  }
+
+  .error-card {
+    grid-template-columns: 1fr;
+  }
+
+  .error-actions {
+    justify-content: flex-start;
   }
 }

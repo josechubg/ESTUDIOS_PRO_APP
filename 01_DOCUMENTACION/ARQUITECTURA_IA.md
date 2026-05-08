@@ -11,7 +11,7 @@ La interfaz estable visual v1 no debe cambiarse para esta fase. La preparacion s
 - `03_APP/data/studyStructure.js`: estructura dinamica de alumnos, cursos, asignaturas y subbloques.
 - `03_APP/services/storageService.js`: lectura, guardado y borrado del estado en `localStorage`.
 - `03_APP/services/aiService.js`: punto unico para chat simulado y futura conexion GPT.
-- `03_APP/services/errorMemoryService.js`: creacion, filtrado y alta de errores frecuentes.
+- `03_APP/services/errorMemoryService.js`: memoria avanzada de errores por contexto en `estudiosProErrorMemory`.
 - `03_APP/services/courseService.js`: cursos personalizados y simulacros simulados.
 - `03_APP/services/flashcardService.js`: generacion de flashcards simuladas.
 - `03_APP/services/fileStorageService.js`: metadatos de archivos por bloque en `estudiosProFiles`.
@@ -74,14 +74,17 @@ Si una respuesta depende de una fuente no disponible, la app debe indicarlo con 
 
 ## Memoria de errores
 
-La memoria de errores se separa por alumno, curso, asignatura y bloque. Debe guardar:
+La memoria de errores se separa por alumno, curso, asignatura y bloque. En el MVP se guarda en `localStorage` con la clave `estudiosProErrorMemory`.
 
-- Error detectado.
-- Area donde aparece.
-- Estado: pendiente, mejorando o superado.
+Debe guardar:
+
+- Titulo y descripcion del error.
+- Tipo: conceptual, calculo, comprension lectora, memoria, procedimiento, expresion escrita u otro.
+- Dificultad: baja, media o alta.
+- Estado: pendiente, en repaso o superado.
 - Fecha de deteccion.
-- Ejercicio o respuesta que lo provoco cuando exista.
-- Refuerzo recomendado.
+- Ultima fecha de repaso.
+- Numero de repasos.
 
 Uso previsto:
 

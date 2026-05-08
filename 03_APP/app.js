@@ -1,6 +1,13 @@
 import { loadAppState, saveAppState } from "./services/storageService.js";
 import { buildSimulatedAnswer as buildAIResponse } from "./services/aiService.js";
-import { addError, createError, getVisibleErrors } from "./services/errorMemoryService.js";
+import {
+  addError,
+  deleteError,
+  getAllErrors,
+  getErrorsByContext,
+  markAsReviewed,
+  updateError,
+} from "./services/errorMemoryService.js";
 import {
   buildCoursePlan as buildSimulatedCoursePlan,
   createMockForArea,
@@ -236,23 +243,6 @@ const defaultsByArea = {
   },
 };
 
-const defaultErrors = {
-  juan: [
-    { area: "Dibujo Tecnico", text: "No justificar trazas ni cambios de plano en sistema diedrico.", status: "pendiente" },
-    { area: "Dibujo Tecnico", text: "Confundir verdadera magnitud con proyeccion abatida.", status: "mejorando" },
-    { area: "Lengua · Analisis gramatical", text: "Confundir atributo con complemento directo.", status: "pendiente" },
-    { area: "Lengua · Sintaxis", text: "No delimitar la subordinada antes de asignar funcion.", status: "pendiente" },
-  ],
-  carlota: [
-    { area: "Anatomia", text: "Confundir ramas terminales del plexo braquial.", status: "pendiente" },
-    { area: "Bioquimica", text: "Fallar preguntas con doble negacion en test avanzado.", status: "mejorando" },
-  ],
-  gonzalo: [
-    { area: "Matematicas", text: "Cambiar signos al pasar terminos de lado.", status: "pendiente" },
-    { area: "Lengua", text: "Responder sin justificar.", status: "mejorando" },
-  ],
-};
-
 const elements = {
   shell: document.querySelector("#app-shell"),
   homeScreen: document.querySelector("#home-screen"),
@@ -305,8 +295,12 @@ const elements = {
   mockList: document.querySelector("#mock-list"),
   mocksCount: document.querySelector("#mocks-count"),
   errorsList: document.querySelector("#errors-list"),
+  errorsSummary: document.querySelector("#errors-summary"),
   errorForm: document.querySelector("#error-form"),
-  errorInput: document.querySelector("#error-input"),
+  errorTitle: document.querySelector("#error-title"),
+  errorDescription: document.querySelector("#error-description"),
+  errorType: document.querySelector("#error-type"),
+  errorDifficulty: document.querySelector("#error-difficulty"),
   progressList: document.querySelector("#progress-list"),
   reviewList: document.querySelector("#review-list"),
   customCourseForm: document.querySelector("#custom-course-form"),
@@ -342,7 +336,6 @@ function getAgentDefaults(agentKey) {
     mode: "planned",
     chat: [],
     focusChat: [],
-    errors: defaultErrors[agentKey] || [],
     flashcards: [],
     customCourses: [],
     mocks: [],
@@ -450,6 +443,16 @@ function activeFileContext() {
   };
 }
 
+function activeErrorContext() {
+  const context = activeFileContext();
+  return {
+    studentId: context.studentId,
+    courseId: context.courseId,
+    subjectId: context.subjectId,
+    blockId: context.subblockId,
+  };
+}
+
 function formatFileSize(bytes) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -489,7 +492,7 @@ function renderShell() {
   elements.chatTitle.textContent = agent.chatName;
   elements.metricProgress.textContent = `${agent.metrics.progress}%`;
   elements.metricReviews.textContent = String(agent.metrics.reviews);
-  elements.metricErrors.textContent = String(agentState.errors.length);
+  elements.metricErrors.textContent = String(getAllErrors().filter((error) => error.studentId === activeAgentKey()).length);
   elements.modePill.textContent = agent.modeNames[agentState.mode];
 }
 
@@ -682,18 +685,68 @@ function addAgentMessage(text) {
 }
 
 function renderErrors() {
-  const agentState = activeAgentState();
-  const area = activeArea();
-  const list = getVisibleErrors(agentState.errors, { area, subject: agentState.subject });
+  const list = getErrorsByContext(activeErrorContext());
   elements.errorsList.innerHTML = "";
+  renderErrorSummary(list);
+
+  if (list.length === 0) {
+    const empty = document.createElement("li");
+    empty.className = "error-card";
+    empty.textContent = "Todavia no hay errores guardados para este bloque.";
+    elements.errorsList.append(empty);
+    return;
+  }
+
   list.forEach((error) => {
     const item = document.createElement("li");
-    item.innerHTML = "<strong></strong><span></span><br><small></small>";
-    item.querySelector("strong").textContent = error.area;
-    item.querySelector("span").textContent = error.text;
-    item.querySelector("small").textContent = `Estado: ${error.status}`;
+    item.className = "error-card";
+    item.innerHTML = `
+      <div>
+        <strong></strong>
+        <p></p>
+        <div class="file-meta">
+          <span class="status-pill"></span>
+          <span class="status-pill"></span>
+          <span></span>
+        </div>
+      </div>
+      <div class="error-actions">
+        <button class="secondary-button" type="button" data-error-action="review">Repasado</button>
+        <button class="secondary-button" type="button" data-error-action="solved">Superado</button>
+        <button class="secondary-button" type="button" data-error-action="delete">Eliminar</button>
+      </div>
+    `;
+    item.querySelector("strong").textContent = error.title;
+    item.querySelector("p").textContent = error.description;
+    item.querySelector(".file-meta .status-pill:nth-child(1)").textContent = error.status;
+    item.querySelector(".file-meta .status-pill:nth-child(2)").textContent = error.difficulty;
+    item.querySelector(".file-meta span:nth-child(3)").textContent = `${error.errorType} · repasos: ${error.reviewCount || 0}`;
+    item.querySelectorAll("[data-error-action]").forEach((button) => {
+      button.dataset.errorId = error.id;
+    });
     elements.errorsList.append(item);
   });
+}
+
+function renderErrorSummary(errors) {
+  const counts = {
+    total: errors.length,
+    pendiente: errors.filter((error) => error.status === "pendiente").length,
+    repaso: errors.filter((error) => error.status === "en repaso").length,
+    superado: errors.filter((error) => error.status === "superado").length,
+  };
+  const typeCounts = errors.reduce((acc, error) => {
+    acc[error.errorType] = (acc[error.errorType] || 0) + 1;
+    return acc;
+  }, {});
+  const topType = Object.entries(typeCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "sin datos";
+  elements.errorsSummary.innerHTML = `
+    <span>Total: ${counts.total}</span>
+    <span>Pendientes: ${counts.pendiente}</span>
+    <span>En repaso: ${counts.repaso}</span>
+    <span>Superados: ${counts.superado}</span>
+    <span>Tipo mas frecuente: ${topType}</span>
+  `;
 }
 
 function renderProgress() {
@@ -945,11 +998,29 @@ elements.focusChatForm.addEventListener("submit", (event) => {
 
 elements.errorForm.addEventListener("submit", (event) => {
   event.preventDefault();
-  const text = elements.errorInput.value.trim();
-  if (!text) return;
-  activeAgentState().errors = addError(activeAgentState().errors, createError({ area: activeArea(), text }));
-  elements.errorInput.value = "";
-  saveState();
+  const title = elements.errorTitle.value.trim();
+  const description = elements.errorDescription.value.trim();
+  if (!title || !description) return;
+  addError(
+    {
+      title,
+      description,
+      errorType: elements.errorType.value,
+      difficulty: elements.errorDifficulty.value,
+    },
+    activeErrorContext()
+  );
+  elements.errorTitle.value = "";
+  elements.errorDescription.value = "";
+  render();
+});
+
+elements.errorsList.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-error-action]");
+  if (!button) return;
+  if (button.dataset.errorAction === "review") markAsReviewed(button.dataset.errorId);
+  if (button.dataset.errorAction === "solved") updateError(button.dataset.errorId, { status: "superado", lastReviewedAt: new Date().toISOString() });
+  if (button.dataset.errorAction === "delete") deleteError(button.dataset.errorId);
   render();
 });
 
