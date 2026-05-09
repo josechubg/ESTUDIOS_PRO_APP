@@ -19,6 +19,8 @@ El MVP actual tiene dos niveles de uso:
 - Pantalla inicial: seleccion simple de Juan, Carlota🥰 o Gonzalo.
 - Preparacion: alumno, curso, asignatura, bloque y tres acciones principales.
 - Modo foco: chat central y errores a vigilar, sin distracciones.
+- Flashcards: generacion desde errores, modo repaso e impresion limpia.
+- Generar material: resumen, flashcards y simulacro desde tema, parte concreta, contenido pegado o archivos/fotos del bloque.
 
 Todo el producto sigue siendo una simulacion. No hay IA real ni analisis real de archivos.
 
@@ -64,14 +66,20 @@ Gonzalo esta preparado a nivel de estructura para una fase posterior:
 - Seleccion de asignatura.
 - Subbloques especificos para Lengua: Literatura, Analisis gramatical, Comentario de texto, Sintaxis, Morfologia y PAU Lengua.
 - Subida simulada de archivos asociada a alumno, curso, asignatura y subbloque.
+- Subida simulada de fotos de apuntes, cuaderno, libro, esquemas, ejercicios o examenes con metadatos enriquecidos.
+- Opcion `Hacer foto con el móvil` usando una tarjeta `label` nativa conectada a `input accept="image/*"` y `capture="environment"` para mejorar compatibilidad con Safari iOS.
 - Botones de subir archivos, estudio programado y estudio ultrarrapido.
 - Chat educativo simulado.
-- Flashcards.
+- Flashcards con seleccion, modo repaso, resultados guardados e impresion.
 - Simulacros.
 - Panel de errores frecuentes.
 - Alta manual de errores por alumno, curso, asignatura y subbloque.
 - Acciones de memoria de errores: repasado, superado y eliminar.
 - Entrenamiento recomendado basado en errores del bloque.
+- Flashcards y mini-simulacros generados desde la memoria de errores del bloque.
+- Generador flexible de material en modo simulacion desde tema, parte concreta, contenido pegado o archivos/fotos subidas.
+- Trazabilidad visible de fuente y regla de apoyo visual inteligente: imprescindible, opcional o no necesario.
+- Placeholders de apoyo visual sin generacion real de imagen ni llamadas API.
 - Creacion simulada de curso personalizado con plan por dias, objetivos, ejercicios, flashcards, errores a vigilar y repaso final.
 - Persistencia local con `localStorage`.
 
@@ -82,6 +90,10 @@ Gonzalo esta preparado a nivel de estructura para una fase posterior:
 - `services/aiService.js`: respuestas simuladas y punto futuro de IA real.
 - `services/errorMemoryService.js`: memoria avanzada de errores por contexto.
 - `services/adaptiveTrainingService.js`: entrenamiento recomendado simulado desde errores.
+- `services/errorTrainingGeneratorService.js`: generador simulado de flashcards y mini-simulacros desde errores.
+- `services/flashcardReviewService.js`: resultados de repaso de flashcards por contexto.
+- `services/materialGeneratorService.js`: material simulado por tema/subtema/contenido pegado y claves `estudiosProGeneratedMaterials`, `estudiosProTopicSummaries`, `estudiosProTopicFlashcards`, `estudiosProTopicQuizzes`.
+- `services/visualResourcesService.js`: recursos visuales simulados en `estudiosProVisualResources`.
 - `services/courseService.js`: cursos personalizados y simulacros.
 - `services/flashcardService.js`: flashcards simuladas.
 - `services/fileStorageService.js`: metadatos de archivos por alumno, curso, asignatura y subbloque.
@@ -120,6 +132,17 @@ La clave de almacenamiento del MVP es `estudiosProMvpStateV3`.
 
 La memoria avanzada de errores usa `estudiosProErrorMemory`.
 
+Los resultados de repaso de flashcards usan `estudiosProFlashcardReviews`.
+
+El material generado por tema, subtema o contenido pegado usa claves separadas:
+
+- `estudiosProGeneratedMaterials`;
+- `estudiosProTopicSummaries`;
+- `estudiosProTopicFlashcards`;
+- `estudiosProTopicQuizzes`.
+
+En modo simulacion solo se guarda una vista previa del contenido pegado.
+
 El estado local cubre:
 
 - Agente activo.
@@ -132,6 +155,7 @@ El estado local cubre:
 - Archivos seleccionados en el prototipo.
 - Curso personalizado generado.
 - Datos operativos de flashcards y simulacros derivados del estado activo.
+- Resultados de repaso de flashcards: dominada, duda o no sabida.
 
 Los selectores de curso, asignatura y bloque se alimentan desde `data/studyStructure.js`. Al cargar estado guardado, la app valida el ultimo contexto activo para evitar quedarse en cursos, asignaturas o bloques que ya no existan en la estructura.
 
@@ -152,13 +176,26 @@ El MVP no guarda contenido ni procesa PDFs. Solo registra metadatos:
 - `courseId`;
 - `subjectId`;
 - `subblockId`;
+- `topicName`;
+- `subtopicName`;
+- `materialKind`;
+- `sourceDevice`;
 - `status`: pendiente de procesamiento.
+- `processingNotes`;
+- `futureAIReady`.
+- `captureMode`: `file_upload` o `mobile_camera`.
 
 El listado se filtra por el contexto activo. Si cambias de asignatura o subbloque, solo aparecen los archivos de ese bloque concreto.
 
 La clave de almacenamiento separada es `estudiosProFiles`.
 
 No subas a GitHub archivos reales de apuntes, examenes, PDFs privados o documentos personales.
+
+### Fotos desde móvil
+
+La opcion `📱 Hacer foto con el móvil` abre la cámara o selector del dispositivo cuando el navegador lo permite. En iPhone hay que pulsar directamente sobre la tarjeta, no sobre un botón intermedio, para que Safari trate la acción como selección nativa de archivo. En escritorio se muestra un aviso para usar la subida normal o abrir la app desde el móvil.
+
+Limitacion actual: sin backend, la foto solo existe en el dispositivo donde se selecciona. Para sincronizar móvil y ordenador hará falta backend, servidor local accesible por red o una PWA sincronizada. La ruta futura recomendada es QR del bloque activo + subida móvil + procesamiento IA/OCR.
 
 ## Estado del MVP Juan
 

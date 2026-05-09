@@ -59,30 +59,111 @@
             </label>
           </div>
 
+          <div id="main-stats" class="main-stats" aria-label="Resumen del bloque"></div>
+
           <div class="primary-actions">
-            <button id="start-study" class="primary-button" type="button">Empezar a estudiar</button>
-            <button id="show-files" class="secondary-button" type="button">
-              Subir archivos
+            <button id="start-study" class="primary-button action-card" type="button">
+              <strong>▶ Empezar a estudiar</strong>
+              <span>Modo foco con chat.</span>
             </button>
-            <button id="flashcards-action" class="secondary-button" type="button">
-              Flashcards
+            <button id="show-files" class="secondary-button action-card" type="button">
+              <strong>📚 Archivos</strong>
+              <span>Apuntes, fotos y ejercicios.</span>
             </button>
-            <button id="mock-exam-action" class="secondary-button" type="button">
-              Simulacro
+            <button id="flashcards-action" class="secondary-button action-card" type="button">
+              <strong>🧠 Flashcards</strong>
+              <span>Tarjetas inteligentes.</span>
             </button>
-            <button id="custom-focus-action" class="secondary-button" type="button">
-              Crear curso personalizado
+            <button id="mock-exam-action" class="secondary-button action-card" type="button">
+              <strong>📝 Simulacro</strong>
+              <span>Preguntas tipo examen.</span>
             </button>
-            <button id="show-errors" class="secondary-button" type="button">
-              Ver errores frecuentes
+            <button id="custom-focus-action" class="secondary-button action-card" type="button">
+              <strong>🚀 Crear curso</strong>
+              <span>Plan a tu ritmo.</span>
             </button>
-            <button id="show-training" class="secondary-button" type="button">
-              Entrenamiento recomendado
+            <button id="show-errors" class="secondary-button action-card" type="button">
+              <strong>⚠️ Errores frecuentes</strong>
+              <span>Convierte fallos en mejora.</span>
+            </button>
+            <button id="show-training" class="secondary-button action-card" type="button">
+              <strong>🎯 Entrenamiento recomendado</strong>
+              <span>Plan según tus errores.</span>
+            </button>
+            <button id="show-material-generator" class="secondary-button action-card" type="button">
+              <strong>✨ Generar material</strong>
+              <span>Resumen, tarjetas y test.</span>
             </button>
           </div>
 
+          <div id="material-generator-section" class="drawer hidden">
+            <div class="tool-screen-header">
+              <div>
+                <h3>✨ Generar material</h3>
+                <p class="drawer-copy">Crea material para este bloque.</p>
+              </div>
+              <button class="help-button" type="button" data-help-title="Generar material" data-help-text="Puedes generar resumen, flashcards o simulacro desde un tema, una parte concreta, contenido pegado o archivos del bloque. Por ahora es simulación: no usa IA real ni analiza archivos.">ℹ️</button>
+              <button class="text-button" type="button" data-back-main>← Volver al panel principal</button>
+            </div>
+            <form id="material-generator-form" class="material-generator-form">
+              <label>
+                <span class="field-label-row">Fuente <button class="help-button tiny" type="button" data-help-title="Fuente del material" data-help-text="Elige de dónde saldrá el material simulado: tema general, parte concreta, contenido pegado o archivos/fotos ya subidos.">?</button></span>
+                <select id="material-source-type">
+                  <option value="topic">Tema general</option>
+                  <option value="subtopic">Parte concreta de un tema</option>
+                  <option value="pasted_content">Contenido pegado</option>
+                  <option value="uploaded_files">Archivos/fotos subidas del bloque</option>
+                </select>
+              </label>
+              <label>
+                <span class="field-label-row">Tema principal <button class="help-button tiny" type="button" data-help-title="Tema principal" data-help-text="Escribe el tema base: por ejemplo, Rectas en sistema diédrico. Si usas contenido pegado o archivos, puede quedarse vacío.">?</button></span>
+                <input id="material-topic" type="text" placeholder="Rectas en sistema diédrico" />
+              </label>
+              <label id="material-subtopic-label">
+                <span class="field-label-row">Parte concreta <button class="help-button tiny" type="button" data-help-title="Parte concreta" data-help-text="Úsalo cuando quieras centrar el material en una parte pequeña del tema, como recta de perfil y trazas.">?</button></span>
+                <input id="material-subtopic" type="text" placeholder="Solo recta de perfil y trazas" />
+              </label>
+              <label id="material-pasted-label" class="material-wide">
+                <span class="field-label-row">Contenido pegado <button class="help-button tiny" type="button" data-help-title="Contenido pegado" data-help-text="Pega un fragmento breve de apuntes. En modo simulación solo se usa una vista previa, no hay análisis IA real.">?</button></span>
+                <textarea id="material-pasted-content" rows="6" placeholder="Pega aquí el texto, apuntes o fragmento que quieres convertir en material de estudio"></textarea>
+              </label>
+              <div id="material-files-label" class="material-wide hidden">
+                <strong>Archivos/fotos de este bloque</strong>
+                <button class="help-button tiny" type="button" data-help-title="Archivos del bloque" data-help-text="Selecciona materiales ya subidos. Ahora solo se usan como referencia simulada; más adelante podrán procesarse con IA/OCR.">?</button>
+                <div id="material-file-options" class="material-file-options"></div>
+              </div>
+              <label>
+                Nivel
+                <select id="material-difficulty">
+                  <option value="basico">básico</option>
+                  <option value="medio" selected>medio</option>
+                  <option value="alto">alto</option>
+                  <option value="examen">examen</option>
+                </select>
+              </label>
+              <label>
+                Tipo de material
+                <select id="material-type">
+                  <option value="resumen">resumen</option>
+                  <option value="flashcards">flashcards</option>
+                  <option value="simulacro">simulacro</option>
+                  <option value="todo" selected>todo</option>
+                </select>
+              </label>
+              <button class="primary-button" type="submit">Generar material</button>
+            </form>
+            <div id="material-generator-result" class="material-result" aria-live="polite"></div>
+          </div>
+
           <div id="custom-course-section" class="drawer hidden">
-            <h3>Crear curso personalizado</h3>
+            <div class="tool-screen-header">
+              <div>
+                <h3>Crear curso personalizado</h3>
+                <p class="drawer-copy">Planifica tu estudio.</p>
+              </div>
+              <button class="help-button" type="button" data-help-title="Curso personalizado" data-help-text="Crea un plan simulado según tema, duración, tiempo diario, nivel, objetivo y si hay examen cercano. No llama a IA real todavía.">ℹ️</button>
+              <button class="text-button" type="button" data-back-main>← Volver al panel principal</button>
+            </div>
             <form id="custom-course-form" class="custom-course-form">
               <input id="course-topic" type="text" value="Analisis gramatical" aria-label="Tema del curso" />
               <input id="course-duration" type="text" value="1 semana" aria-label="Duracion total" />
@@ -103,7 +184,14 @@
           </div>
 
           <div id="errors-section" class="drawer hidden">
-            <h3>Errores frecuentes</h3>
+            <div class="tool-screen-header">
+              <div>
+                <h3>Errores frecuentes</h3>
+                <p class="drawer-copy">Guarda y repasa fallos.</p>
+              </div>
+              <button class="help-button" type="button" data-help-title="Errores frecuentes" data-help-text="Los errores se guardan por alumno, curso, asignatura y bloque. Sirven para crear entrenamiento recomendado, flashcards y simulacros personalizados en modo simulación.">ℹ️</button>
+              <button class="text-button" type="button" data-back-main>← Volver al panel principal</button>
+            </div>
             <div id="errors-summary" class="error-summary" aria-live="polite"></div>
             <ul id="errors-list" class="errors-list"></ul>
             <form id="error-form" class="error-form">
@@ -128,23 +216,115 @@
           </div>
 
           <div id="files-section" class="drawer hidden">
-            <h3>Archivos del bloque</h3>
+            <div class="tool-screen-header">
+              <div>
+                <h3>Archivos del bloque</h3>
+                <p class="drawer-copy">Sube apuntes, ejercicios o fotos.</p>
+              </div>
+              <button class="help-button" type="button" data-help-title="Archivos del bloque" data-help-text="Puedes subir PDFs, documentos o fotos. Ahora solo se guardan metadatos asociados al bloque activo; no se guarda contenido real ni se analiza con IA todavía.">ℹ️</button>
+              <button class="text-button" type="button" data-back-main>← Volver al panel principal</button>
+            </div>
             <p id="file-context" class="drawer-copy"></p>
-            <label class="file-picker">
-              <span>Seleccionar archivos</span>
-              <input id="file-input" type="file" multiple />
-            </label>
+            <div class="file-detail-grid">
+              <label>
+                <span class="field-label-row">Tema <button class="help-button tiny" type="button" data-help-title="Tema" data-help-text="Puedes indicar el tema manualmente. Si lo dejas vacío, quedará marcado como pendiente de detección por IA futura.">?</button></span>
+                <input id="file-topic-name" type="text" placeholder="Rectas en sistema diédrico" />
+              </label>
+              <label>
+                <span class="field-label-row">Parte <button class="help-button tiny" type="button" data-help-title="Parte del tema" data-help-text="Opcional. Si no sabes la parte exacta, déjala vacía para que más adelante la IA la sugiera con el contexto y la imagen.">?</button></span>
+                <input id="file-subtopic-name" type="text" placeholder="Recta de perfil" />
+              </label>
+              <label>
+                <span class="field-label-row">Tipo <button class="help-button tiny" type="button" data-help-title="Tipo de material" data-help-text="Examen oficial tiene prioridad alta porque puede entrenar mejor de cara a pruebas reales. Examen no oficial tiene prioridad media.">?</button></span>
+                <select id="file-material-kind">
+                  <option value="apunte">apunte</option>
+                  <option value="foto_cuaderno">foto de cuaderno</option>
+                  <option value="foto_libro">foto de libro</option>
+                  <option value="esquema">esquema</option>
+                  <option value="ejercicio">ejercicio</option>
+                  <option value="examen_oficial">Examen oficial</option>
+                  <option value="examen_no_oficial">Examen no oficial</option>
+                  <option value="otro">otro</option>
+                </select>
+              </label>
+              <label>
+                <span class="field-label-row">Origen <button class="help-button tiny" type="button" data-help-title="Origen" data-help-text="Indica desde dónde viene el archivo. Si usas el escáner móvil, se guardará automáticamente como móvil.">?</button></span>
+                <select id="file-source-device">
+                  <option value="desconocido">desconocido</option>
+                  <option value="ordenador">ordenador</option>
+                  <option value="movil">móvil</option>
+                  <option value="tablet">tablet</option>
+                </select>
+              </label>
+            </div>
+            <p class="ai-detection-note">🤖 Tema pendiente de IA si lo dejas vacío. <button class="help-button tiny" type="button" data-help-title="Tema pendiente de IA" data-help-text="Si no indicas tema o parte, el archivo queda preparado para que una IA futura lo clasifique usando alumno, curso, asignatura, bloque, tipo de material e imagen.">?</button></p>
+            <div class="upload-choice-grid upload-choice-grid-desktop">
+              <label for="desktop-file-input" class="upload-choice upload-action-card">
+                <strong>💻 Subir archivo desde ordenador</strong>
+                <span>PDF, documentos o imágenes guardadas. Se añaden al bloque al seleccionarlos.</span>
+              </label>
+              <input
+                id="desktop-file-input"
+                class="visually-hidden-file-input"
+                type="file"
+                multiple
+                accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,image/*"
+              />
+            </div>
+            <section class="mobile-scanner-panel" aria-label="Escaner de fotos con móvil">
+              <div class="scanner-copy">
+                <strong>📱 Escanear con móvil</strong>
+                <span>Haz fotos y guárdalas juntas.</span>
+                <button class="help-button tiny" type="button" data-help-title="Escáner móvil" data-help-text="En iPhone, pulsa directamente sobre Hacer foto. Cada selección se añade a Fotos pendientes. Puedes hacer varias fotos, quitar o desmarcar algunas, y luego guardar solo las seleccionadas.">?</button>
+              </div>
+              <div class="scanner-actions">
+              <label for="mobile-camera-input" class="upload-choice upload-action-card">
+                  <strong>📸 Hacer foto</strong>
+                  <span>Abrir cámara.</span>
+                </label>
+                <label for="mobile-camera-input" class="upload-choice upload-action-card">
+                  <strong>➕ Añadir otra foto</strong>
+                  <span>Sumar imagen.</span>
+              </label>
+              <input
+                id="mobile-camera-input"
+                class="visually-hidden-file-input"
+                type="file"
+                accept="image/*"
+                capture="environment"
+                multiple
+              />
+              </div>
+            </section>
+            <section class="pending-photo-panel" aria-label="Fotos pendientes de guardar">
+              <div class="pending-photo-header">
+                <div>
+                  <h4>Fotos pendientes de guardar</h4>
+                  <p class="drawer-copy">Elige cuáles guardar.</p>
+                </div>
+                <button id="save-mobile-photos" class="primary-button" type="button">Guardar fotos seleccionadas en este bloque</button>
+              </div>
+              <div id="pending-photo-list" class="pending-photo-list" aria-live="polite"></div>
+            </section>
+            <p id="upload-status" class="upload-status hidden" aria-live="polite"></p>
             <div id="file-list" class="file-list" aria-live="polite"></div>
           </div>
 
           <div id="training-section" class="drawer hidden">
-            <h3>Entrenamiento recomendado</h3>
+            <div class="tool-screen-header">
+              <div>
+                <h3>Entrenamiento recomendado</h3>
+                <p class="drawer-copy">Prioriza qué repasar.</p>
+              </div>
+              <button class="help-button" type="button" data-help-title="Entrenamiento recomendado" data-help-text="Analiza los errores guardados en este bloque y propone acciones simuladas: flashcards, mini-simulacro o repaso del bloque.">ℹ️</button>
+              <button class="text-button" type="button" data-back-main>← Volver al panel principal</button>
+            </div>
             <div id="training-content" class="course-result" aria-live="polite"></div>
             <div class="training-actions">
               <button id="training-flashcards" class="secondary-button" type="button">Crear flashcards desde errores</button>
-              <button id="training-mock" class="secondary-button" type="button">Crear mini-simulacro</button>
+              <button id="training-mock" class="secondary-button" type="button">Crear mini-simulacro desde errores</button>
               <button id="training-review-block" class="secondary-button" type="button">Marcar bloque como repasado</button>
-              <button id="training-back" class="secondary-button" type="button">Volver</button>
+              <button id="training-back" class="secondary-button" type="button">← Volver al panel principal</button>
             </div>
           </div>
         </div>
@@ -158,11 +338,40 @@
               <h1 id="focus-title">Estudio programado</h1>
               <p id="focus-subtitle">Chat central, errores claros y una tarea cada vez.</p>
             </div>
+            <button class="help-button" type="button" data-help-title="Modo foco" data-help-text="Esta vista concentra la tarea actual: chat, explicación, errores, flashcards o simulacro. Para volver a la pantalla principal usa el botón de salida.">ℹ️</button>
             <button id="exit-focus" class="secondary-button" type="button">Salir del modo foco</button>
           </header>
 
+          <section id="flashcard-review-panel" class="review-panel hidden" aria-live="polite">
+            <div class="review-stage-header">
+              <div>
+                <p class="eyebrow">Modo repaso</p>
+                <h2>Flashcards de repaso</h2>
+              </div>
+              <button id="review-exit" class="secondary-button" type="button">Salir del repaso</button>
+            </div>
+            <div class="review-progress">
+              <span id="review-counter">Tarjeta 0 de 0</span>
+              <div class="review-track"><span id="review-progress-bar"></span></div>
+            </div>
+            <button id="review-card" class="review-card" type="button">
+              <span id="review-front" class="review-face"></span>
+              <span id="review-back" class="review-face hidden"></span>
+            </button>
+            <div class="review-actions">
+              <button id="review-flip" class="secondary-button" type="button">Ver respuesta</button>
+              <button id="review-known" class="secondary-button review-known" type="button">✅ La sé</button>
+              <button id="review-doubt" class="secondary-button review-doubt" type="button">🤔 Dudar</button>
+              <button id="review-unknown" class="secondary-button review-unknown" type="button">🔁 No la sé</button>
+              <button id="review-prev" class="secondary-button" type="button">Anterior</button>
+              <button id="review-next" class="secondary-button" type="button">Siguiente</button>
+            </div>
+            <p id="review-summary" class="review-summary">Dominadas 0 · Dudosas 0 · No sabidas 0</p>
+          </section>
+
           <section class="focus-main">
             <article class="chat-card">
+              <div id="focus-explanation" class="focus-explanation"></div>
               <div id="focus-chat-messages" class="chat-messages"></div>
               <form id="focus-chat-form" class="chat-form">
                 <input id="focus-chat-input" type="text" autocomplete="off" placeholder="Pregunta sobre esta tarea..." />
@@ -173,6 +382,24 @@
             <aside class="focus-side">
               <h2>Errores a vigilar</h2>
               <div id="focus-errors" class="card-list"></div>
+              <div class="focus-tools">
+                <button id="focus-create-flashcards-errors" class="secondary-button" type="button">🧠 Crear flashcards desde errores</button>
+                <button id="focus-create-mock-errors" class="secondary-button" type="button">📝 Crear mini-simulacro desde errores</button>
+              </div>
+              <h2>Flashcards</h2>
+              <button class="help-button inline-help" type="button" data-help-title="Flashcards" data-help-text="Puedes crear tarjetas desde errores, repasarlas en modo Anki/Quizlet e imprimir todas o solo las seleccionadas con respuestas incluidas.">ℹ️</button>
+              <div class="flashcard-toolbar" aria-label="Herramientas de flashcards">
+                <button id="focus-review-mode" class="secondary-button" type="button">🧠 Iniciar modo repaso</button>
+                <button id="focus-select-all-flashcards" class="secondary-button" type="button">Seleccionar todas</button>
+                <button id="focus-deselect-flashcards" class="secondary-button" type="button">Deseleccionar</button>
+                <button id="focus-print-all" class="secondary-button" type="button">🖨️ Imprimir todas</button>
+                <button id="focus-print-selected" class="secondary-button" type="button">🖨️ Imprimir seleccionadas</button>
+                <button id="focus-print-qa" class="secondary-button" type="button">📄 Imprimir preguntas y respuestas</button>
+              </div>
+              <div id="focus-flashcards" class="card-list"></div>
+              <h2>Preguntas generadas</h2>
+              <button class="help-button inline-help" type="button" data-help-title="Simulacro" data-help-text="Las preguntas de simulacro son simuladas y pueden generarse desde errores o desde material del bloque. No hay IA real conectada todavía.">ℹ️</button>
+              <div id="focus-exercises" class="card-list"></div>
             </aside>
           </section>
         </div>
@@ -210,12 +437,21 @@
         <div id="metric-errors"></div>
         <div id="focus-progress-pill"></div>
         <div id="focus-task-title"></div>
-        <div id="focus-explanation"></div>
-        <div id="focus-exercises"></div>
-        <div id="focus-flashcards"></div>
         <div id="focus-chat-title"></div>
       </div>
     </main>
+
+    <dialog id="help-modal" class="help-modal" aria-labelledby="help-modal-title">
+      <div class="help-modal-card">
+        <div class="help-modal-header">
+          <h2 id="help-modal-title">Ayuda</h2>
+          <button id="help-modal-close" class="text-button" type="button">Cerrar</button>
+        </div>
+        <p id="help-modal-text"></p>
+      </div>
+    </dialog>
+
+    <section id="print-area" class="print-area" aria-hidden="true"></section>
 
     <script type="module" src="app.js"></script>
   </body>

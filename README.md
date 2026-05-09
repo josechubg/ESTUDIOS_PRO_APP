@@ -48,10 +48,17 @@ http://localhost:5173
 - Modo foco con chat central.
 - Chat simulado.
 - Subida simulada de archivos por alumno, curso, asignatura y bloque.
+- Subida de fotos de apuntes/cuaderno/libro con metadatos de tema, parte, tipo y dispositivo.
+- Subida directa de fotos desde móvil con label nativo + input `capture="environment"` compatible con Safari iOS y metadato `captureMode`.
 - Errores frecuentes.
 - Memoria avanzada de errores con tipo, dificultad, estado y repasos.
 - Entrenamiento recomendado simulado basado en errores del bloque.
-- Flashcards simuladas.
+- Flashcards y mini-simulacros generados desde errores guardados.
+- Generador flexible de material desde tema, parte concreta o contenido pegado.
+- Preparacion para generar material desde archivos/fotos subidas del bloque, todavia sin OCR ni vision real.
+- Regla de apoyo visual inteligente: imprescindible, opcional o no necesario, siempre en modo placeholder sin generar imagen real.
+- Placeholders de apoyo visual y trazabilidad de fuente en explicaciones/materiales.
+- Flashcards simuladas con modo repaso, seleccion, resultados en `localStorage` e impresion limpia.
 - Simulacros simulados.
 - Curso personalizado simulado.
 - Persistencia local con `localStorage`.
@@ -65,6 +72,10 @@ La app mantiene respuestas simuladas, pero ya separa la logica principal en serv
 - `03_APP/services/aiService.js`: chat simulado y payload futuro para GPT.
 - `03_APP/services/errorMemoryService.js`: memoria avanzada de errores por bloque en `estudiosProErrorMemory`.
 - `03_APP/services/adaptiveTrainingService.js`: resumen y recomendaciones simuladas desde la memoria de errores.
+- `03_APP/services/errorTrainingGeneratorService.js`: genera flashcards y mini-simulacros simulados desde errores.
+- `03_APP/services/flashcardReviewService.js`: guarda resultados de repaso de flashcards en `estudiosProFlashcardReviews`.
+- `03_APP/services/materialGeneratorService.js`: genera y guarda material simulado por tema, subtema o contenido pegado.
+- `03_APP/services/visualResourcesService.js`: placeholders de dibujos/esquemas y recursos visuales con trazabilidad.
 - `03_APP/services/courseService.js`: cursos personalizados y simulacros.
 - `03_APP/services/flashcardService.js`: flashcards.
 - `03_APP/services/fileStorageService.js`: metadatos de archivos por bloque en `estudiosProFiles`.
@@ -155,6 +166,12 @@ ESTUDIOS_PRO_APP/
 - No deben subirse a GitHub archivos reales de apuntes, examenes o documentos privados.
 - El chat responde con mensajes simulados.
 - `localStorage` no es memoria segura ni sincronizada.
+
+### Fotos desde móvil
+
+En modo local sin backend, la foto solo se selecciona desde el dispositivo donde está abierta la web. En iPhone, pulsa directamente sobre la tarjeta `📱 Hacer foto con el móvil`; Safari abrirá cámara o galería si lo permite. Para subir desde móvil al ordenador de forma sincronizada hará falta backend, servidor local accesible desde la red o PWA con almacenamiento sincronizado.
+
+Flujo futuro recomendado: QR del bloque activo, subida móvil, asociación automática al contexto y procesamiento IA/OCR seguro en backend.
 
 ## Proximos pasos
 
