@@ -411,6 +411,107 @@ h3 {
   grid-column: 1 / -1;
 }
 
+.study-route {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--level-2-bg) 62%, var(--line));
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--level-2-bg) 24%, #ffffff);
+}
+
+.study-route-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.study-route-header h3,
+.study-route-header p {
+  margin: 0;
+}
+
+.study-route-header h3 {
+  margin-top: 6px;
+  font-size: 1.05rem;
+}
+
+.study-route-header p {
+  margin-top: 5px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.study-route-steps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.study-route-step {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--level-3-bg) 78%, var(--line));
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.study-route-step.is-done {
+  border-color: color-mix(in srgb, var(--primary-action) 32%, var(--line));
+  background: color-mix(in srgb, var(--primary-action) 8%, #ffffff);
+}
+
+.study-route-number {
+  display: inline-grid;
+  place-items: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 999px;
+  background: var(--level-1-bg);
+  color: var(--level-1-text);
+  font-weight: 900;
+}
+
+.study-route-step strong {
+  display: block;
+  color: var(--text-main);
+}
+
+.study-route-step p {
+  margin: 5px 0 8px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.route-status {
+  display: inline-flex;
+  width: fit-content;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--level-3-bg) 74%, #ffffff);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.study-route-step.is-done .route-status {
+  background: color-mix(in srgb, var(--primary-action) 14%, #ffffff);
+  color: color-mix(in srgb, var(--primary-action) 72%, #0f5132);
+}
+
+.study-route-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .recommendation-card {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -2917,8 +3018,13 @@ body[data-agent-theme="gonzalo"] {
   .visual-pending-layout,
   .inbox-meta,
   .recommendation-card,
+  .study-route-steps,
   .planner-period-summary {
     grid-template-columns: 1fr;
+  }
+
+  .study-route-header {
+    flex-direction: column;
   }
 
   .next-action-card {

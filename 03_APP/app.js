@@ -340,6 +340,7 @@ const elements = {
   whatStudyNow: document.querySelector("#what-study-now"),
   dashboardSummary: document.querySelector("#dashboard-summary"),
   nextActionResult: document.querySelector("#next-action-result"),
+  studyRoute: document.querySelector("#study-route"),
   dashboardQuickAccess: document.querySelector(".dashboard-quick-access"),
   metricProgress: document.querySelector("#metric-progress"),
   metricReviews: document.querySelector("#metric-reviews"),
@@ -604,6 +605,7 @@ let plannerView = "month";
 let plannerDate = new Date();
 let pendingQuickPlan = null;
 let selectedInboxItemKey = "";
+const STUDY_ROUTE_KEY = "estudiosProStudyRouteProgress";
 
 function saveState() {
   saveAppState(state);
@@ -842,6 +844,178 @@ function buildWhatStudyNowRecommendation() {
   });
 }
 
+function studyRouteSteps() {
+  return [
+    {
+      id: "material",
+      title: "Revisar material",
+      description: "Ordena apuntes, fotos o PDFs pendientes.",
+      actionLabel: "Abrir bandeja",
+      action: "materialInbox",
+    },
+    {
+      id: "summary",
+      title: "Estudiar resumen",
+      description: "Genera o abre un resumen del bloque.",
+      actionLabel: "Generar resumen",
+      action: "generateMaterial",
+    },
+    {
+      id: "flashcards",
+      title: "Hacer flashcards",
+      description: "Pasa a repaso activo con tarjetas.",
+      actionLabel: "Abrir flashcards",
+      action: "flashcards",
+    },
+    {
+      id: "mock",
+      title: "Hacer simulacro",
+      description: "Comprueba el bloque como examen corto.",
+      actionLabel: "Abrir simulacro",
+      action: "mock",
+    },
+    {
+      id: "errors",
+      title: "Revisar errores",
+      description: "Mira fallos pendientes y patrones.",
+      actionLabel: "Ver errores",
+      action: "errors",
+    },
+    {
+      id: "calendar",
+      title: "Añadir repaso al calendario",
+      description: "Programa una sesión para no olvidarlo.",
+      actionLabel: "Añadir repaso",
+      action: "calendar",
+    },
+  ];
+}
+
+function readStudyRouteStore() {
+  try {
+    return JSON.parse(localStorage.getItem(STUDY_ROUTE_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function writeStudyRouteStore(store) {
+  localStorage.setItem(STUDY_ROUTE_KEY, JSON.stringify(store));
+}
+
+function activeStudyRouteKey() {
+  return contextSuffix() || "ruta-general";
+}
+
+function activeStudyRouteProgress() {
+  const store = readStudyRouteStore();
+  return store[activeStudyRouteKey()] || { completed: {}, updatedAt: new Date().toISOString() };
+}
+
+function updateStudyRouteProgress(updater) {
+  const store = readStudyRouteStore();
+  const key = activeStudyRouteKey();
+  const current = store[key] || { completed: {} };
+  store[key] = {
+    ...current,
+    completed: { ...(current.completed || {}) },
+    updatedAt: new Date().toISOString(),
+  };
+  updater(store[key]);
+  writeStudyRouteStore(store);
+}
+
+function setStudyRouteStep(stepId, completed = true) {
+  updateStudyRouteProgress((route) => {
+    route.completed[stepId] = Boolean(completed);
+  });
+  renderStudyRoute();
+}
+
+function resetStudyRoute() {
+  updateStudyRouteProgress((route) => {
+    route.completed = {};
+  });
+  renderStudyRoute();
+}
+
+function renderStudyRoute() {
+  if (!elements.studyRoute) return;
+  const progress = activeStudyRouteProgress();
+  const steps = studyRouteSteps();
+  const completedCount = steps.filter((step) => progress.completed?.[step.id]).length;
+  elements.studyRoute.innerHTML = `
+    <div class="study-route-header">
+      <div>
+        <span class="ui-level-label level-2">Ruta de estudio recomendada</span>
+        <h3>Ruta de estudio recomendada</h3>
+        <p>${completedCount}/${steps.length} pasos completados en este bloque.</p>
+      </div>
+      <button class="secondary-button ui-action-secondary" type="button" data-route-reset>Reiniciar ruta de estudio</button>
+    </div>
+    <div class="study-route-steps">
+      ${steps
+        .map((step, index) => {
+          const done = Boolean(progress.completed?.[step.id]);
+          return `
+            <article class="study-route-step ${done ? "is-done" : ""} ui-level-3">
+              <span class="study-route-number">${index + 1}</span>
+              <div>
+                <strong>${escapeHtml(step.title)}</strong>
+                <p>${escapeHtml(step.description)}</p>
+                <span class="route-status">${done ? "hecho" : "pendiente"}</span>
+              </div>
+              <div class="study-route-actions">
+                <button class="secondary-button ui-action-secondary" type="button" data-route-action="${step.action}" data-route-step="${step.id}">${escapeHtml(step.actionLabel)}</button>
+                <button class="text-button" type="button" data-route-toggle="${step.id}">${done ? "Marcar pendiente" : "Marcar hecho"}</button>
+              </div>
+            </article>
+          `;
+        })
+        .join("")}
+    </div>
+  `;
+}
+
+function handleStudyRouteAction(action, stepId) {
+  if (stepId) setStudyRouteStep(stepId, true);
+  if (action === "materialInbox") {
+    openToolScreen("materialInbox");
+    renderMaterialInbox();
+    return;
+  }
+  if (action === "generateMaterial") {
+    openToolScreen("generateMaterial");
+    renderMaterialGeneratorFields();
+    renderMaterialResult();
+    return;
+  }
+  if (action === "flashcards") {
+    createFlashcards();
+    return;
+  }
+  if (action === "mock") {
+    createMock();
+    return;
+  }
+  if (action === "errors") {
+    openToolScreen("errors");
+    renderErrors();
+    return;
+  }
+  if (action === "calendar") {
+    schedulePlannerEvent({
+      tipo: "repaso",
+      titulo: `Repaso guiado · ${activeArea()}`,
+      descripcion: "Repaso creado desde la ruta de estudio recomendada.",
+      minutesFromNow: 180,
+      duration: 30,
+    });
+    openToolScreen("planner");
+    renderPlanner();
+  }
+}
+
 function renderDashboardSummary() {
   const { upcomingEvents, errors, concepts, materials } = activeDashboardData();
   const latestMaterial = materials[0];
@@ -854,6 +1028,7 @@ function renderDashboardSummary() {
   const recommendation = buildWhatStudyNowRecommendation();
   elements.nextActionTitle.textContent = recommendation.title;
   elements.nextActionReason.textContent = recommendation.reason;
+  renderStudyRoute();
 }
 
 function renderWhatStudyNowResult() {
@@ -4121,6 +4296,23 @@ elements.nextActionResult.addEventListener("click", (event) => {
   const button = event.target.closest("[data-dashboard-action]");
   if (!button) return;
   handleDashboardAction(button.dataset.dashboardAction);
+});
+elements.studyRoute.addEventListener("click", (event) => {
+  const resetButton = event.target.closest("[data-route-reset]");
+  if (resetButton) {
+    resetStudyRoute();
+    return;
+  }
+  const toggleButton = event.target.closest("[data-route-toggle]");
+  if (toggleButton) {
+    const progress = activeStudyRouteProgress();
+    const stepId = toggleButton.dataset.routeToggle;
+    setStudyRouteStep(stepId, !progress.completed?.[stepId]);
+    return;
+  }
+  const actionButton = event.target.closest("[data-route-action]");
+  if (!actionButton) return;
+  handleStudyRouteAction(actionButton.dataset.routeAction, actionButton.dataset.routeStep);
 });
 elements.plannedMode.addEventListener("click", () => setMode("planned"));
 elements.rapidMode.addEventListener("click", () => setMode("rapid"));
