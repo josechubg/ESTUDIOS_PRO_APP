@@ -72,6 +72,8 @@ import {
 } from "./services/visualPendingService.js";
 import {
   getInboxItemState,
+  MATERIAL_INBOX_STATUSES,
+  MATERIAL_INBOX_TYPES,
   setInboxItemStatus,
   updateInboxItemState,
 } from "./services/materialInboxService.js";
@@ -1479,7 +1481,11 @@ function handleChatResponseAction(action, messageId) {
   if (action === "inbox") {
     const material = materialFromChatResponse(message, "respuesta_chat");
     saveGeneratedMaterial(material);
-    updateInboxItemState(inboxSourceKey("generated-material", material.base.id), { status: "pendiente_clasificar" });
+    updateInboxItemState(inboxSourceKey("generated-material", material.base.id), {
+      status: "pendiente_clasificar",
+      estado: "pendiente_clasificar",
+      relacionadoConMaterialId: material.base.id,
+    });
     renderMaterialInbox();
   }
   if (action === "summary") {
@@ -1645,6 +1651,7 @@ function renderDifficultConcepts() {
         </div>
       </div>
       <div class="concept-actions">
+        <button class="secondary-button" type="button" data-concept-action="inbox">Enviar a bandeja</button>
         <button class="secondary-button" type="button" data-concept-action="review">Repasado</button>
         <button class="secondary-button" type="button" data-concept-action="flashcards">Flashcards</button>
         <button class="secondary-button" type="button" data-concept-action="questions">Preguntas</button>
@@ -2336,18 +2343,50 @@ function inboxSourceKey(source, id) {
 }
 
 function inboxStatus(baseStatus, sourceKey) {
-  return getInboxItemState(sourceKey).status || baseStatus;
+  const override = getInboxItemState(sourceKey);
+  const status = override.status || override.estado || baseStatus;
+  return MATERIAL_INBOX_STATUSES.includes(status) ? status : "pendiente_clasificar";
 }
 
 function buildInboxItem(base) {
   const override = getInboxItemState(base.sourceKey);
+  const materialType = MATERIAL_INBOX_TYPES.includes(override.tipo || base.materialType) ? override.tipo || base.materialType : "archivo";
+  const status = inboxStatus(override.status || override.estado || base.status, base.sourceKey);
+  const note = override.notaUsuario ?? override.observations ?? base.notaUsuario ?? "";
   return {
     ...base,
     ...override,
-    status: override.status || base.status,
-    observations: override.observations || "",
+    title: override.titulo || base.titulo || base.title,
+    titulo: override.titulo || base.titulo || base.title,
+    materialType,
+    tipo: materialType,
+    origin: override.origen || base.origen || base.origin,
+    origen: override.origen || base.origen || base.origin,
+    studentId: override.alumno || base.alumno || base.studentId,
+    alumno: override.alumno || base.alumno || base.studentId,
+    courseId: override.curso || base.curso || base.courseId,
+    curso: override.curso || base.curso || base.courseId,
+    subjectId: override.asignatura || base.asignatura || base.subjectId || "",
+    asignatura: override.asignatura || base.asignatura || base.subjectId || "",
+    blockId: override.bloque || base.bloque || base.blockId || "",
+    bloque: override.bloque || base.bloque || base.blockId || "",
+    date: override.fecha || base.fecha || base.date,
+    fecha: override.fecha || base.fecha || base.date,
+    status,
+    estado: status,
+    notaUsuario: note,
+    observations: note,
     associatedTopic: override.associatedTopic || base.associatedTopic || "",
+    relacionadoConEventoId: override.relacionadoConEventoId || base.relacionadoConEventoId || "",
+    relacionadoConMaterialId: override.relacionadoConMaterialId || base.relacionadoConMaterialId || "",
   };
+}
+
+function chatAttachmentInboxType(attachment) {
+  if (attachment.dudaVisual) return "duda_visual";
+  if (attachment.origen === "camara_chat") return "foto_camara";
+  if (attachment.origen === "galeria_chat") return "foto_galeria";
+  return "foto_chat";
 }
 
 function fileInboxType(file) {
@@ -2367,13 +2406,21 @@ function buildMaterialInboxItems() {
       source: "file",
       sourceKey,
       title: file.fileName,
+      titulo: file.fileName,
       materialType: type,
+      tipo: type,
       origin: file.captureMode === "mobile_camera" ? "escáner móvil" : "archivo subido",
+      origen: file.captureMode === "mobile_camera" ? "escáner móvil" : "archivo subido",
       studentId: file.studentId,
       courseId: file.courseId,
       subjectId: file.subjectId,
       blockId: file.blockId || file.subblockId || "",
+      alumno: file.studentId,
+      curso: file.courseId,
+      asignatura: file.subjectId,
+      bloque: file.blockId || file.subblockId || "",
       date: file.uploadedAt,
+      fecha: file.uploadedAt,
       status: inboxStatus(baseStatus, sourceKey),
       badge: type === "pdf" ? "PDF" : "Archivo",
       description: `${file.materialKind || "material"} · ${file.topicName || "sin tema"} · ${file.status}`,
@@ -2383,19 +2430,27 @@ function buildMaterialInboxItems() {
 
   const chatItems = getAllChatAttachments().map((attachment) => {
     const sourceKey = inboxSourceKey("chat-attachment", attachment.id);
-    const type = attachment.dudaVisual ? "duda_visual" : attachment.origen === "camara_chat" ? "foto_camara" : attachment.origen === "galeria_chat" ? "foto_galeria" : "foto_chat";
+    const type = chatAttachmentInboxType(attachment);
     return buildInboxItem({
       id: attachment.id,
       source: "chat-attachment",
       sourceKey,
       title: attachment.nombreArchivo,
+      titulo: attachment.nombreArchivo,
       materialType: type,
+      tipo: type,
       origin: attachment.origen === "camara_chat" ? "cámara del chat" : "galería del chat",
+      origen: attachment.origen === "camara_chat" ? "cámara del chat" : "galería del chat",
       studentId: attachment.alumno,
       courseId: attachment.curso,
       subjectId: attachment.asignatura,
       blockId: attachment.bloque || "",
+      alumno: attachment.alumno,
+      curso: attachment.curso,
+      asignatura: attachment.asignatura,
+      bloque: attachment.bloque || "",
       date: attachment.fecha,
+      fecha: attachment.fecha,
       status: inboxStatus(attachment.temaAsociado ? "asociado_a_tema" : "pendiente_ia_real", sourceKey),
       badge: attachment.dudaVisual ? "Duda visual" : "Foto chat",
       associatedTopic: attachment.temaAsociado,
@@ -2411,13 +2466,21 @@ function buildMaterialInboxItems() {
       source: "calendar",
       sourceKey,
       title: calendar.nombreArchivo,
+      titulo: calendar.nombreArchivo,
       materialType: "calendario",
+      tipo: "calendario",
       origin: "calendario subido",
+      origen: "calendario subido",
       studentId: calendar.alumno,
       courseId: calendar.curso,
       subjectId: "",
       blockId: "",
+      alumno: calendar.alumno,
+      curso: calendar.curso,
+      asignatura: "",
+      bloque: "",
       date: calendar.fechaSubida,
+      fecha: calendar.fechaSubida,
       status: inboxStatus("pendiente_ia_real", sourceKey),
       badge: "Calendario",
       description: `${calendar.tipoArchivo} · ${formatFileSize(calendar.tamano || 0)} · pendiente de IA real`,
@@ -2433,15 +2496,24 @@ function buildMaterialInboxItems() {
       source: "generated-material",
       sourceKey,
       title: material.topic || material.materialTypeLabel || "Material generado",
+      titulo: material.topic || material.materialTypeLabel || "Material generado",
       materialType: isChatResponse ? "respuesta_chat" : "material_generado",
+      tipo: isChatResponse ? "respuesta_chat" : "material_generado",
       origin: material.origin || material.sourceType || "material generado",
+      origen: material.origin || material.sourceType || "material generado",
       studentId: material.studentId,
       courseId: material.courseId,
       subjectId: material.subjectId,
       blockId: material.blockId || "",
+      alumno: material.studentId,
+      curso: material.courseId,
+      asignatura: material.subjectId,
+      bloque: material.blockId || "",
       date: material.createdAt,
+      fecha: material.createdAt,
       status: inboxStatus("convertido_en_material", sourceKey),
       badge: isChatResponse ? "Respuesta chat" : "Material generado",
+      relacionadoConMaterialId: material.id,
       description: `${material.materialTypeLabel || materialTypeName(material.tipoMaterial || material.materialType)} · ${material.sourceLabel || "simulado"}`,
       raw: material,
     });
@@ -2454,13 +2526,21 @@ function buildMaterialInboxItems() {
       source: "difficult-concept",
       sourceKey,
       title: concept.title,
+      titulo: concept.title,
       materialType: "concepto_dificil",
+      tipo: "concepto_dificil",
       origin: concept.source || "concepto difícil",
+      origen: concept.source || "concepto difícil",
       studentId: concept.studentId,
       courseId: concept.courseId,
       subjectId: concept.subjectId,
       blockId: concept.blockId || "",
+      alumno: concept.studentId,
+      curso: concept.courseId,
+      asignatura: concept.subjectId,
+      bloque: concept.blockId || "",
       date: concept.createdAt,
+      fecha: concept.createdAt,
       status: inboxStatus("pendiente_clasificar", sourceKey),
       badge: "Concepto difícil",
       description: concept.description || concept.sourceText || "",
@@ -2531,11 +2611,13 @@ function renderInboxListItem(item) {
   card.innerHTML = `
     <span class="source-badge"></span>
     <strong></strong>
-    <small></small>
+    <small class="inbox-list-context"></small>
+    <small class="inbox-list-origin"></small>
   `;
   card.querySelector(".source-badge").textContent = `${item.badge} · ${statusLabel(item.status)}`;
   card.querySelector("strong").textContent = item.title;
-  card.querySelector("small").textContent = `${labels.subject}${labels.block ? ` · ${labels.block}` : ""} · ${normalizeInboxDate(item.date)}`;
+  card.querySelector(".inbox-list-context").textContent = `${labels.subject}${labels.block ? ` · ${labels.block}` : ""} · ${normalizeInboxDate(item.date)}`;
+  card.querySelector(".inbox-list-origin").textContent = `Origen: ${item.origin}`;
   return card;
 }
 
@@ -2569,15 +2651,19 @@ function renderInboxDetail(item) {
       <div><dt>Curso</dt><dd>${escapeHtml(labels.course)}</dd></div>
       <div><dt>Asignatura</dt><dd>${escapeHtml(labels.subject)}</dd></div>
       <div><dt>Bloque</dt><dd>${escapeHtml(labels.block || "Sin bloque")}</dd></div>
+      <div><dt>Tipo</dt><dd>${escapeHtml(item.materialType)}</dd></div>
+      <div><dt>Estado</dt><dd>${escapeHtml(item.status)}</dd></div>
       <div><dt>Origen</dt><dd>${escapeHtml(item.origin)}</dd></div>
       <div><dt>Fecha</dt><dd>${escapeHtml(normalizeInboxDate(item.date))}</dd></div>
+      <div><dt>Evento relacionado</dt><dd>${escapeHtml(item.relacionadoConEventoId || "No")}</dd></div>
+      <div><dt>Material relacionado</dt><dd>${escapeHtml(item.relacionadoConMaterialId || "No")}</dd></div>
     </dl>
     <label class="inbox-notes-label">
-      Observaciones
-      <textarea id="inbox-observations" rows="4" placeholder="Ej. Esta foto corresponde al ejercicio 4 de metabolismo.">${escapeHtml(item.observations || "")}</textarea>
+      Nota de usuario
+      <textarea id="inbox-observations" rows="4" placeholder="Ej. Esta foto corresponde al ejercicio 4 de metabolismo.">${escapeHtml(item.notaUsuario || "")}</textarea>
     </label>
     <div class="inbox-actions">
-      <button class="secondary-button" type="button" data-inbox-action="save-notes">Guardar observaciones</button>
+      <button class="secondary-button" type="button" data-inbox-action="save-notes">Guardar nota</button>
       <button class="secondary-button" type="button" data-inbox-action="topic">Asociar a tema</button>
       <button class="secondary-button" type="button" data-inbox-action="difficult">Concepto difícil</button>
       <button class="secondary-button" type="button" data-inbox-action="summary">Crear resumen</button>
@@ -2585,7 +2671,7 @@ function renderInboxDetail(item) {
       <button class="secondary-button" type="button" data-inbox-action="questions">Crear preguntas</button>
       <button class="secondary-button" type="button" data-inbox-action="mock">Crear simulacro</button>
       <button class="secondary-button" type="button" data-inbox-action="schedule">Programar repaso</button>
-      <button class="secondary-button" type="button" data-inbox-action="calendar">Añadir al calendario</button>
+      <button class="secondary-button" type="button" data-inbox-action="calendar">${item.materialType === "calendario" ? "Crear eventos manualmente desde este calendario" : "Añadir al calendario"}</button>
       <button class="secondary-button" type="button" data-inbox-action="archive">Archivar</button>
       <button class="secondary-button" type="button" data-inbox-action="delete">Eliminar</button>
     </div>
@@ -2623,7 +2709,11 @@ function createMaterialFromInboxItem(item, materialType) {
     activeAgentState().mocks.unshift(material.quiz);
     saveState();
   }
-  setInboxItemStatus(item.sourceKey, "convertido_en_material");
+  updateInboxItemState(item.sourceKey, {
+    status: "convertido_en_material",
+    estado: "convertido_en_material",
+    relacionadoConMaterialId: material.base.id,
+  });
   addAgentMessage(`Material simulado creado desde la bandeja: ${materialTypeName(materialType)}.`);
 }
 
@@ -2631,7 +2721,8 @@ function handleInboxAction(action) {
   const item = buildMaterialInboxItems().find((entry) => entry.sourceKey === selectedInboxItemKey);
   if (!item) return;
   if (action === "save-notes") {
-    updateInboxItemState(item.sourceKey, { observations: document.querySelector("#inbox-observations")?.value || "" });
+    const note = document.querySelector("#inbox-observations")?.value || "";
+    updateInboxItemState(item.sourceKey, { notaUsuario: note, observations: note });
   }
   if (action === "topic") {
     const topic = window.prompt("Tema o parte asociada:", item.associatedTopic || activeArea());
@@ -2650,7 +2741,7 @@ function handleInboxAction(action) {
       },
       inboxItemContext(item)
     );
-    updateInboxItemState(item.sourceKey, { status: "convertido_en_material" });
+    updateInboxItemState(item.sourceKey, { status: "convertido_en_material", estado: "convertido_en_material" });
   }
   if (action === "summary") createMaterialFromInboxItem(item, "resumen");
   if (action === "flashcards") createMaterialFromInboxItem(item, "flashcards");
@@ -2658,7 +2749,7 @@ function handleInboxAction(action) {
   if (action === "schedule" || action === "calendar") {
     const start = new Date(Date.now() + 120 * 60000);
     const end = new Date(start.getTime() + 30 * 60000);
-    addPlannerEvent(
+    const plannerEvent = addPlannerEvent(
       {
         tipo: item.materialType === "calendario" ? "personal" : "repaso",
         titulo: item.materialType === "calendario" ? `Evento desde calendario · ${item.title}` : `Repaso de bandeja · ${item.title}`,
@@ -2669,7 +2760,11 @@ function handleInboxAction(action) {
       },
       { ...inboxItemContext(item), blockName: item.blockId || "" }
     );
-    setInboxItemStatus(item.sourceKey, "programado_en_calendario");
+    updateInboxItemState(item.sourceKey, {
+      status: "programado_en_calendario",
+      estado: "programado_en_calendario",
+      relacionadoConEventoId: plannerEvent?.id || "",
+    });
     addAgentMessage(`Añadido al calendario desde Bandeja de material: ${item.title}.`);
     renderPlanner();
     renderUpcomingEvents();
@@ -2778,6 +2873,7 @@ function renderMaterialHistory() {
       </div>
       <div class="material-history-actions">
         <button class="secondary-button" type="button" data-open-material="">Abrir</button>
+        <button class="secondary-button" type="button" data-send-history-material-inbox="">Enviar a bandeja</button>
         <button class="secondary-button" type="button" data-print-history-material="">Imprimir / PDF</button>
         <button class="secondary-button" type="button" data-delete-material="">Eliminar</button>
       </div>
@@ -2786,6 +2882,7 @@ function renderMaterialHistory() {
     card.querySelector("strong").textContent = item.topic || activeArea();
     card.querySelector("p").textContent = `${item.materialTypeLabel || materialTypeName(item.tipoMaterial || item.materialType)} · ${item.origin || item.sourceType} · ${new Date(item.createdAt).toLocaleDateString("es-ES")}`;
     card.querySelector("[data-open-material]").dataset.openMaterial = item.id;
+    card.querySelector("[data-send-history-material-inbox]").dataset.sendHistoryMaterialInbox = item.id;
     card.querySelector("[data-print-history-material]").dataset.printHistoryMaterial = item.id;
     card.querySelector("[data-delete-material]").dataset.deleteMaterial = item.id;
     elements.materialHistoryList.append(card);
@@ -2844,6 +2941,17 @@ function deleteMaterialFromHistory(materialId) {
   renderMaterialResult();
 }
 
+function sendGeneratedMaterialToInbox(materialId) {
+  updateInboxItemState(inboxSourceKey("generated-material", materialId), {
+    status: "pendiente_clasificar",
+    estado: "pendiente_clasificar",
+    relacionadoConMaterialId: materialId,
+  });
+  selectedInboxItemKey = inboxSourceKey("generated-material", materialId);
+  renderMaterialInbox();
+  addAgentMessage("Material enviado a Bandeja de material para clasificar o reutilizar.");
+}
+
 function renderGeneratedMaterialCard(material) {
   const context = activeFileContext();
   const card = document.createElement("article");
@@ -2857,6 +2965,7 @@ function renderGeneratedMaterialCard(material) {
       </div>
       <div class="generated-material-actions no-print">
         <span class="progress-pill">${escapeHtml(material.base.materialTypeLabel || material.base.materialType)}</span>
+        <button class="secondary-button" type="button" data-send-material-inbox="">Enviar a bandeja</button>
         <button class="secondary-button" type="button" data-print-material="">Imprimir / Guardar PDF</button>
       </div>
     </div>
@@ -2868,6 +2977,7 @@ function renderGeneratedMaterialCard(material) {
     </div>
     <div class="generated-material-content"></div>
   `;
+  card.querySelector("[data-send-material-inbox]").addEventListener("click", () => sendGeneratedMaterialToInbox(material.base.id));
   card.querySelector("[data-print-material]").addEventListener("click", () => printGeneratedMaterial(material));
   card.querySelector(".source-badge").textContent = material.base.sourceLabel;
   const content = card.querySelector(".generated-material-content");
@@ -3865,6 +3975,15 @@ elements.difficultConceptsList.addEventListener("click", (event) => {
   const button = event.target.closest("[data-concept-action]");
   if (!button) return;
   const conceptId = button.dataset.conceptId;
+  if (button.dataset.conceptAction === "inbox") {
+    updateInboxItemState(inboxSourceKey("difficult-concept", conceptId), {
+      status: "pendiente_clasificar",
+      estado: "pendiente_clasificar",
+    });
+    selectedInboxItemKey = inboxSourceKey("difficult-concept", conceptId);
+    openToolScreen("materialInbox");
+    renderMaterialInbox();
+  }
   if (button.dataset.conceptAction === "review") markDifficultConceptReviewed(conceptId);
   if (button.dataset.conceptAction === "flashcards") createFlashcardsFromDifficultConcepts([conceptId]);
   if (button.dataset.conceptAction === "questions") createMockFromDifficultConcepts([conceptId]);
@@ -4046,9 +4165,11 @@ elements.materialGeneratorForm.addEventListener("submit", createGeneratedMateria
 elements.materialHistoryFilter.addEventListener("change", renderMaterialHistory);
 elements.materialHistoryList.addEventListener("click", (event) => {
   const openButton = event.target.closest("[data-open-material]");
+  const sendButton = event.target.closest("[data-send-history-material-inbox]");
   const printButton = event.target.closest("[data-print-history-material]");
   const deleteButton = event.target.closest("[data-delete-material]");
   if (openButton) openMaterialFromHistory(openButton.dataset.openMaterial);
+  if (sendButton) sendGeneratedMaterialToInbox(sendButton.dataset.sendHistoryMaterialInbox);
   if (printButton) printMaterialFromHistory(printButton.dataset.printHistoryMaterial);
   if (deleteButton) deleteMaterialFromHistory(deleteButton.dataset.deleteMaterial);
 });
