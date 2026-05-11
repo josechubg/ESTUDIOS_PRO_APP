@@ -68,7 +68,10 @@ import {
   getAllChatAttachments,
   getCalendarImportsByContext,
   getChatAttachmentsByContext,
+  getVisualPendingItemState,
+  updateCalendarImport,
   updateChatAttachment,
+  updateVisualPendingItemState,
 } from "./services/visualPendingService.js";
 import {
   getInboxItemState,
@@ -479,6 +482,7 @@ const elements = {
   showVisualPending: document.querySelector("#show-visual-pending"),
   visualPendingSection: document.querySelector("#visual-pending-section"),
   visualPendingList: document.querySelector("#visual-pending-list"),
+  visualPendingDetail: document.querySelector("#visual-pending-detail"),
   planningAssistantSection: document.querySelector("#planning-assistant-section"),
   upcomingEventsList: document.querySelector("#upcoming-events-list"),
   quickPlanForm: document.querySelector("#quick-plan-form"),
@@ -2346,23 +2350,48 @@ function activeVisualContext() {
   return activeErrorContext();
 }
 
+function visualSourceKey(kind, id) {
+  return `${kind}:${id}`;
+}
+
+function visualFileItems() {
+  return getFilesForContext(activeFileContext()).filter((file) => {
+    const mime = String(file.mimeType || "").toLowerCase();
+    const name = String(file.fileName || "").toLowerCase();
+    const kind = String(file.materialKind || "").toLowerCase();
+    return mime.startsWith("image/") || mime.includes("pdf") || name.endsWith(".pdf") || ["foto_cuaderno", "foto_libro", "esquema"].includes(kind);
+  });
+}
+
 function renderVisualPending() {
   const calendars = getCalendarImportsByContext(activeVisualContext());
   const attachments = getChatAttachmentsByContext(activeVisualContext());
+  const files = visualFileItems().filter((item) => getVisualPendingItemState(visualSourceKey("file", item.id)).estado !== "eliminado");
   elements.visualPendingList.innerHTML = "";
-  if (calendars.length + attachments.length === 0) {
-    addItemCard(elements.visualPendingList, "Sin material visual pendiente", "Adjunta una foto al chat o sube un calendario foto/PDF.");
+  if (calendars.length + attachments.length + files.length === 0) {
+    addItemCard(elements.visualPendingList, "No tienes material visual pendiente en este bloque.", "Adjunta una foto al chat o sube un calendario, imagen o PDF.");
+    elements.visualPendingDetail.innerHTML = `<p class="drawer-copy">No tienes material visual pendiente en este bloque.</p>`;
     return;
   }
   calendars.forEach((item) => elements.visualPendingList.append(renderPendingVisualCard(item, "calendar")));
   attachments.forEach((item) => elements.visualPendingList.append(renderPendingVisualCard(item, "chat")));
+  files.forEach((item) => elements.visualPendingList.append(renderPendingVisualCard(item, "file")));
 }
 
 function renderPendingVisualCard(item, kind) {
   const card = document.createElement("article");
   card.className = "visual-pending-card ui-level-3";
+  const sourceKey = visualSourceKey(kind, item.id);
+  const state = getVisualPendingItemState(sourceKey);
+  const context = activeFileContext();
   const originLabel =
-    item.origen === "camara_chat"
+    kind === "file"
+      ? item.mimeType?.includes("pdf") || item.fileName?.toLowerCase().endsWith(".pdf")
+        ? "PDF subido"
+        : item.materialKind === "esquema"
+          ? "esquema visual"
+          : "imagen subida"
+      : item.origen === "camara_chat"
       ? "cámara del chat"
       : item.origen === "galeria_chat"
         ? "galería del chat"
@@ -2376,46 +2405,107 @@ function renderPendingVisualCard(item, kind) {
       <p></p>
     </div>
     <div class="concept-actions">
-      <button class="secondary-button" type="button" data-visual-pending-action="topic">Asociar a tema</button>
-      <button class="secondary-button" type="button" data-visual-pending-action="event">Crear evento manual</button>
-      <button class="secondary-button" type="button" data-visual-pending-action="doubt">Marcar duda visual</button>
+      <button class="secondary-button" type="button" data-visual-pending-action="view">Ver elemento</button>
+      <button class="secondary-button" type="button" data-visual-pending-action="review">Marcar revisado</button>
+      <button class="secondary-button" type="button" data-visual-pending-action="material">Usar para generar material</button>
+      <button class="secondary-button" type="button" data-visual-pending-action="chat">Enviar al chat IA</button>
       <button class="secondary-button" type="button" data-visual-pending-action="delete">Eliminar</button>
     </div>
   `;
   card.dataset.pendingKind = kind;
   card.dataset.pendingId = item.id;
-  card.querySelector(".source-badge").textContent = kind === "calendar" ? "📅 Calendario pendiente IA real" : `🖼️ ${originLabel} pendiente IA real`;
-  card.querySelector("strong").textContent = item.nombreArchivo;
-  card.querySelector("p").textContent = `${originLabel} · ${item.tipoArchivo} · ${formatFileSize(item.tamano || 0)} · estado: ${item.estado}${item.temaAsociado ? ` · tema: ${item.temaAsociado}` : ""}${item.dudaVisual ? " · duda visual" : ""}`;
-  if (kind === "calendar") {
-    card.querySelector('[data-visual-pending-action="topic"]').classList.add("hidden");
-    card.querySelector('[data-visual-pending-action="doubt"]').classList.add("hidden");
-  } else {
-    card.querySelector('[data-visual-pending-action="event"]').textContent = "Programar repaso";
-  }
+  const title = item.nombreArchivo || item.fileName || "Material visual";
+  const type = item.tipoArchivo || item.mimeType || "tipo no detectado";
+  const size = item.tamano || item.sizeBytes || 0;
+  const status = state.estado || item.estado || item.status || "pendiente";
+  const subject = kind === "calendar" ? context.courseName : context.subjectName;
+  const block = kind === "calendar" ? "Calendario" : context.subblockName || context.subjectName;
+  const uploadedAt = item.fecha || item.fechaSubida || item.uploadedAt || "";
+  card.querySelector(".source-badge").textContent = `${kind === "calendar" ? "📅" : "🖼️"} ${originLabel} · ${statusLabelVisual(status)}`;
+  card.querySelector("strong").textContent = title;
+  card.querySelector("p").textContent = `${subject} · ${block} · ${type} · ${formatFileSize(size)} · ${uploadedAt ? new Date(uploadedAt).toLocaleDateString("es-ES") : "sin fecha"}${item.temaAsociado || state.tema ? ` · tema: ${item.temaAsociado || state.tema}` : ""}${item.dudaVisual ? " · duda visual" : ""}`;
   return card;
 }
 
+function statusLabelVisual(status) {
+  const labels = {
+    pendiente_ia_real: "pendiente",
+    "pendiente de procesamiento": "pendiente",
+    pendiente: "pendiente",
+    revisado: "revisado",
+    usado_material: "usado para material",
+  };
+  return labels[status] || status;
+}
+
+function findVisualPendingItem(kind, id) {
+  if (kind === "calendar") return getCalendarImportsByContext(activeVisualContext()).find((item) => item.id === id);
+  if (kind === "chat") return getChatAttachmentsByContext(activeVisualContext()).find((item) => item.id === id);
+  if (kind === "file") return visualFileItems().find((item) => item.id === id);
+  return null;
+}
+
+function renderVisualPendingDetail(item, kind) {
+  if (!item) return;
+  const state = getVisualPendingItemState(visualSourceKey(kind, item.id));
+  const context = activeFileContext();
+  const title = item.nombreArchivo || item.fileName || "Material visual";
+  const uploadedAt = item.fecha || item.fechaSubida || item.uploadedAt || "";
+  elements.visualPendingDetail.innerHTML = `
+    <div class="visual-detail-card">
+      <span class="source-badge">${escapeHtml(statusLabelVisual(state.estado || item.estado || item.status || "pendiente"))}</span>
+      <h4>${escapeHtml(title)}</h4>
+      <dl class="inbox-meta">
+        <div><dt>Asignatura</dt><dd>${escapeHtml(context.subjectName)}</dd></div>
+        <div><dt>Bloque</dt><dd>${escapeHtml(context.subblockName || context.subjectName)}</dd></div>
+        <div><dt>Fecha</dt><dd>${uploadedAt ? escapeHtml(new Date(uploadedAt).toLocaleString("es-ES")) : "Sin fecha"}</dd></div>
+        <div><dt>Tipo</dt><dd>${escapeHtml(item.tipoArchivo || item.mimeType || "tipo no detectado")}</dd></div>
+      </dl>
+      <p class="drawer-copy">Vista simulada: no se almacena ni se muestra el archivo real. Solo metadatos para futura IA visual/OCR.</p>
+    </div>
+  `;
+}
+
 function handleVisualPendingAction(action, kind, id) {
+  const item = findVisualPendingItem(kind, id);
+  if (!item) return;
+  const sourceKey = visualSourceKey(kind, id);
+  if (action === "view") {
+    renderVisualPendingDetail(item, kind);
+    return;
+  }
   if (action === "delete") {
     if (kind === "calendar") deleteCalendarImport(id);
     if (kind === "chat") deleteChatAttachment(id);
+    if (kind === "file") updateVisualPendingItemState(sourceKey, { estado: "eliminado" });
   }
-  if (action === "topic" && kind === "chat") {
-    const topic = window.prompt("Tema o parte asociada:", activeArea());
-    if (topic) updateChatAttachment(id, { temaAsociado: topic });
+  if (action === "review") {
+    if (kind === "calendar") updateCalendarImport(id, { estado: "revisado" });
+    if (kind === "chat") updateChatAttachment(id, { estado: "revisado" });
+    updateVisualPendingItemState(sourceKey, { estado: "revisado" });
   }
-  if (action === "doubt" && kind === "chat") {
-    updateChatAttachment(id, { dudaVisual: true });
-    addAgentMessage("Foto marcada como duda visual. En IA real podré analizarla directamente.");
-  }
-  if (action === "event") {
-    schedulePlannerEvent({
-      tipo: kind === "calendar" ? "personal" : "repaso",
-      titulo: kind === "calendar" ? "Evento desde calendario subido" : `Repaso de duda visual · ${activeArea()}`,
-      descripcion: "Creado manualmente desde material visual pendiente.",
-      minutesFromNow: 120,
+  if (action === "material") {
+    const title = item.nombreArchivo || item.fileName || activeArea();
+    const material = generateStudyMaterial({
+      sourceType: "uploaded_files",
+      topic: title,
+      subtopic: activeAgentState().block || "",
+      pastedContent: "",
+      difficulty: "medio",
+      materialType: "pack_completo",
+      context: activeErrorContext(),
+      area: activeArea(),
+      sourceFileIds: [id],
     });
+    saveGeneratedMaterial(material);
+    updateVisualPendingItemState(sourceKey, { estado: "usado_material" });
+    addAgentMessage(`Material simulado creado desde ${title}. Pendiente de IA real para leer el archivo completo.`);
+  }
+  if (action === "chat") {
+    const title = item.nombreArchivo || item.fileName || "material visual";
+    addChatMessage(activeAgent().name, `Quiero trabajar este material visual pendiente: ${title}`, "user");
+    addAgentMessage("Lo tengo como referencia simulada. Cuando conectemos IA visual/OCR podré analizarlo; de momento dime qué parte quieres revisar.");
+    setChatExpanded(true);
   }
   renderVisualPending();
 }

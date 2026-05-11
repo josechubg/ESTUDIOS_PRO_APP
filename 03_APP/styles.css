@@ -821,6 +821,13 @@ textarea:focus {
   gap: 10px;
 }
 
+.visual-pending-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+  gap: 16px;
+  align-items: start;
+}
+
 .visual-pending-card {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -841,6 +848,21 @@ textarea:focus {
   margin: 6px 0 0;
   color: var(--muted);
   line-height: 1.45;
+}
+
+.visual-pending-detail {
+  position: sticky;
+  top: 16px;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--level-2-bg) 62%, var(--line));
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--level-2-bg) 42%, #ffffff);
+}
+
+.visual-detail-card h4 {
+  margin: 12px 0;
+  font-size: 1.05rem;
+  line-height: 1.25;
 }
 
 .material-inbox-filters {
@@ -2755,6 +2777,7 @@ body[data-agent-theme="gonzalo"] {
   .material-history-card,
   .material-inbox-filters,
   .material-inbox-layout,
+  .visual-pending-layout,
   .inbox-meta,
   .recommendation-card,
   .planner-period-summary {
@@ -2822,6 +2845,10 @@ body[data-agent-theme="gonzalo"] {
   .concept-card,
   .visual-pending-card {
     grid-template-columns: 1fr;
+  }
+
+  .visual-pending-detail {
+    position: static;
   }
 
   .planner-calendar {

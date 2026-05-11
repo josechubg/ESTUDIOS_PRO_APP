@@ -284,7 +284,12 @@
               <button class="help-button ui-help" type="button" data-help-title="Material visual pendiente" data-help-text="No se guarda el archivo real ni base64. Solo metadatos para futura IA visual/OCR.">ℹ️</button>
               <button class="text-button" type="button" data-back-main>← Volver al panel principal</button>
             </div>
-            <div class="visual-pending-list" id="visual-pending-list" aria-live="polite"></div>
+            <div class="visual-pending-layout">
+              <div class="visual-pending-list" id="visual-pending-list" aria-live="polite"></div>
+              <aside class="visual-pending-detail ui-level-2" id="visual-pending-detail">
+                <p class="drawer-copy">Selecciona “Ver elemento” para revisar sus metadatos.</p>
+              </aside>
+            </div>
           </div>
 
           <div id="material-inbox-section" class="drawer ui-level-1 hidden">

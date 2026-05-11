@@ -3,6 +3,7 @@ export const VISUAL_PENDING_KEY = "estudiosProVisualPending";
 const DEFAULT_DATA = {
   calendarImports: [],
   chatAttachments: [],
+  itemStates: {},
 };
 
 function createId(prefix) {
@@ -58,6 +59,12 @@ export function getAllCalendarImports() {
   return readData().calendarImports;
 }
 
+export function updateCalendarImport(importId, updates) {
+  const data = readData();
+  data.calendarImports = data.calendarImports.map((item) => (item.id === importId ? { ...item, ...updates } : item));
+  writeData(data);
+}
+
 export function deleteCalendarImport(importId) {
   const data = readData();
   data.calendarImports = data.calendarImports.filter((item) => item.id !== importId);
@@ -105,4 +112,22 @@ export function deleteChatAttachment(attachmentId) {
   const data = readData();
   data.chatAttachments = data.chatAttachments.filter((item) => item.id !== attachmentId);
   writeData(data);
+}
+
+export function getVisualPendingItemState(sourceKey) {
+  return readData().itemStates[sourceKey] || {};
+}
+
+export function updateVisualPendingItemState(sourceKey, updates = {}) {
+  const data = readData();
+  data.itemStates = {
+    ...(data.itemStates || {}),
+    [sourceKey]: {
+      ...(data.itemStates?.[sourceKey] || {}),
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    },
+  };
+  writeData(data);
+  return data.itemStates[sourceKey];
 }
