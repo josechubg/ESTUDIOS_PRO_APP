@@ -54,10 +54,19 @@ http://localhost:5173
 - Memoria avanzada de errores con tipo, dificultad, estado y repasos.
 - Entrenamiento recomendado simulado basado en errores del bloque.
 - Flashcards y mini-simulacros generados desde errores guardados.
-- Generador flexible de material desde tema, parte concreta o contenido pegado.
+- Generador flexible de material desde tema, parte concreta, contenido pegado o archivos/fotos del bloque.
+- Tipos de material simulados: resumen, flashcards, simulacro, conceptos clave, errores frecuentes y pack completo.
+- Impresión del material generado con vista limpia para usar "Guardar como PDF" desde el navegador.
+- Historial de materiales generados por bloque con filtro por tipo, abrir, imprimir/PDF y eliminar.
 - Preparacion para generar material desde archivos/fotos subidas del bloque, todavia sin OCR ni vision real.
 - Regla de apoyo visual inteligente: imprescindible, opcional o no necesario, siempre en modo placeholder sin generar imagen real.
 - Placeholders de apoyo visual y trazabilidad de fuente en explicaciones/materiales.
+- Planificador de Estudio Adaptativo con eventos manuales, calendario, planes automáticos, reflexión y estadísticas locales.
+- Calendario visual con resumen del periodo, eventos multiday, duración opcional y lista de eventos del periodo.
+- Planificación flexible bajo demanda: modo express, programado, periodos especiales y recomendación "Qué estudio ahora".
+- Subida de calendario por foto/PDF como metadato pendiente de IA real, con creación manual de eventos desde esa referencia.
+- Adjuntar foto al chat desde cámara o galería como metadato, material visual pendiente y duda visual para futura IA con visión.
+- Bandeja de material para agrupar fotos, archivos, PDFs, calendarios, respuestas del chat, materiales generados y conceptos difíciles.
 - Flashcards simuladas con modo repaso, seleccion, resultados en `localStorage` e impresion limpia.
 - Simulacros simulados.
 - Curso personalizado simulado.
@@ -75,6 +84,7 @@ La app mantiene respuestas simuladas, pero ya separa la logica principal en serv
 - `03_APP/services/errorTrainingGeneratorService.js`: genera flashcards y mini-simulacros simulados desde errores.
 - `03_APP/services/flashcardReviewService.js`: guarda resultados de repaso de flashcards en `estudiosProFlashcardReviews`.
 - `03_APP/services/materialGeneratorService.js`: genera y guarda material simulado por tema, subtema o contenido pegado.
+- `03_APP/services/plannerService.js`: eventos, planes automáticos, adaptación y estadísticas del planificador en `estudiosProPlanner`.
 - `03_APP/services/visualResourcesService.js`: placeholders de dibujos/esquemas y recursos visuales con trazabilidad.
 - `03_APP/services/courseService.js`: cursos personalizados y simulacros.
 - `03_APP/services/flashcardService.js`: flashcards.
@@ -103,6 +113,40 @@ API_MODE=simulation
 La clave real debe ir solo en un `.env` local o en variables de entorno del servidor. Nunca debe subirse a GitHub ni ponerse en archivos frontend.
 
 Consulta `01_DOCUMENTACION/SEGURIDAD_API_KEYS.md` antes de conectar una API real.
+
+## Planificador de Estudio Adaptativo
+
+El planificador permite crear eventos manuales y planes automáticos por alumno, curso, asignatura y bloque. Todo se guarda en `localStorage` con la clave `estudiosProPlanner`.
+
+El uso principal sigue siendo el Modo Dudas: el alumno puede entrar, preguntar al profesor IA y salir sin crear ningún plan. La planificación aparece bajo demanda desde `Planificar estudio`, chips del chat o el calendario.
+
+Incluye:
+
+- Calendario en vistas mes, semana y día.
+- Eventos de estudio, repaso, práctica, simulacro, ocio, ejercicio, examen y personal.
+- Generación automática de sesiones de 20-30 minutos hasta la fecha de examen.
+- Espaciado: sesiones en intervalos crecientes.
+- Práctica de recuperación: repasos, flashcards y simulacros.
+- Intercalación: alterna bloques o temas separados por coma.
+- Metacognición: reflexión al completar cada sesión.
+- Adaptación: si una sesión fue difícil o hay contenido para repasar, añade sesiones extra.
+- Estadísticas: cumplimiento, tiempo dedicado y distribución por tipo.
+- Propuestas no invasivas: un plan breve se previsualiza y solo se guarda al pulsar `Guardar en calendario`.
+- Modos flexibles: express, programado, Navidad, Semana Santa, reorganización por evento y "Qué estudio ahora".
+- Importación de calendarios foto/PDF solo como metadatos en `estudiosProVisualPending`, pendiente de IA real.
+- Material visual pendiente: fotos del chat, calendarios y PDFs quedan listados para asociar tema, marcar duda visual o crear eventos manuales.
+
+Fundamentos usados en modo simulación: práctica de recuperación, repetición espaciada, intercalación, reflexión metacognitiva y hábitos saludables. En esta fase no hay IA real ni sincronización externa.
+
+Referencias de diseño educativo: Roediger y Karpicke sobre práctica de recuperación; Cepeda et al. sobre efecto de espaciado; Kornell y Bjork sobre intercalación; Dunlosky et al. sobre técnicas de estudio eficaces; Zimmerman sobre autorregulación del aprendizaje.
+
+Uso básico:
+
+1. Entra en un alumno y contexto.
+2. Abre `Planificador`.
+3. Crea un evento manual o genera un plan automático con fecha de examen.
+4. Marca sesiones como completadas y responde la reflexión.
+5. Revisa estadísticas y sesiones adaptativas nuevas.
 
 ## Agentes principales
 

@@ -16,16 +16,17 @@
             Elige alumno, entra en una tarea y estudia con foco. Sin ruido.
           </p>
 
+          <span class="ui-level-label level-1">Nivel 1 · Alumno</span>
           <div class="student-grid" aria-label="Seleccion de alumno">
-            <button class="student-card juan" type="button" data-agent-card="juan">
+            <button class="student-card ui-level-1 juan" type="button" data-agent-card="juan">
               <strong>Juan</strong>
               <span>Bachillerato / PAU</span>
             </button>
-            <button class="student-card carlota" type="button" data-agent-card="carlota">
+            <button class="student-card ui-level-1 carlota" type="button" data-agent-card="carlota">
               <strong>Carlota🥰</strong>
               <span>Medicina UCV</span>
             </button>
-            <button class="student-card gonzalo" type="button" data-agent-card="gonzalo">
+            <button class="student-card ui-level-1 gonzalo" type="button" data-agent-card="gonzalo">
               <strong>Gonzalo</strong>
               <span>ESO</span>
             </button>
@@ -39,12 +40,13 @@
           <span id="agent-status" class="soft-pill">Simulado</span>
         </div>
 
-        <div class="setup-card">
+        <div class="setup-card ui-level-1">
           <p class="eyebrow" id="agent-label">Alumno</p>
           <h2 id="welcome-title">Juan</h2>
           <p id="welcome-copy" class="muted-copy">Prepara la sesión y entra a estudiar.</p>
 
-          <div class="select-row">
+          <span class="ui-level-label level-2">Nivel 2 · Curso, asignatura y bloque</span>
+          <div class="select-row ui-level-2">
             <label>
               Curso
               <select id="course-select"></select>
@@ -61,53 +63,250 @@
 
           <div id="main-stats" class="main-stats" aria-label="Resumen del bloque"></div>
 
-          <div class="primary-actions">
-            <button id="start-study" class="primary-button action-card" type="button">
-              <strong>▶ Empezar a estudiar</strong>
-              <span>Modo foco con chat.</span>
-            </button>
-            <button id="show-files" class="secondary-button action-card" type="button">
-              <strong>📚 Archivos</strong>
-              <span>Apuntes, fotos y ejercicios.</span>
-            </button>
-            <button id="flashcards-action" class="secondary-button action-card" type="button">
-              <strong>🧠 Flashcards</strong>
-              <span>Tarjetas inteligentes.</span>
-            </button>
-            <button id="mock-exam-action" class="secondary-button action-card" type="button">
-              <strong>📝 Simulacro</strong>
-              <span>Preguntas tipo examen.</span>
-            </button>
-            <button id="custom-focus-action" class="secondary-button action-card" type="button">
-              <strong>🚀 Crear curso</strong>
-              <span>Plan a tu ritmo.</span>
-            </button>
-            <button id="show-errors" class="secondary-button action-card" type="button">
-              <strong>⚠️ Errores frecuentes</strong>
-              <span>Convierte fallos en mejora.</span>
-            </button>
-            <button id="show-training" class="secondary-button action-card" type="button">
-              <strong>🎯 Entrenamiento recomendado</strong>
-              <span>Plan según tus errores.</span>
-            </button>
-            <button id="show-material-generator" class="secondary-button action-card" type="button">
-              <strong>✨ Generar material</strong>
-              <span>Resumen, tarjetas y test.</span>
-            </button>
+          <section class="study-dashboard" aria-label="Panel de estudio">
+            <article class="ai-chat-hub ui-level-1" aria-labelledby="chat-hub-title">
+              <div class="chat-hub-header">
+                <div>
+                  <span class="ui-level-label level-1">Centro de estudio</span>
+                  <h3 id="chat-hub-title">Habla con tu profesor IA</h3>
+                  <p id="chat-title" class="drawer-copy">Pregunta dudas, pide explicaciones o trabaja sobre tus apuntes.</p>
+                </div>
+                <div class="chat-hub-actions">
+                  <button id="expand-chat" class="secondary-button ui-action-secondary" type="button">Ampliar chat</button>
+                  <button id="collapse-chat" class="secondary-button ui-action-secondary hidden" type="button">Salir de pantalla completa</button>
+                  <button id="start-study" class="primary-button ui-action-primary" type="button">Entrar en modo foco</button>
+                </div>
+              </div>
+              <div id="chat-messages" class="chat-messages main-chat-messages" aria-live="polite"></div>
+              <div class="quick-chat-chips" aria-label="Preguntas rápidas">
+                <button type="button" data-chat-prompt="Tengo una duda concreta sobre este bloque.">Tengo una duda</button>
+                <button type="button" data-chat-prompt="Explícame este tema de forma breve y con un ejemplo.">Explícame este tema</button>
+                <button type="button" data-chat-prompt="Hazme preguntas para comprobar si lo entiendo.">Hazme preguntas</button>
+                <button type="button" data-plan-kind="today">Planifícame hoy</button>
+                <button type="button" data-plan-kind="week">Planifica mi semana</button>
+                <button type="button" data-plan-kind="subject">Organiza esta asignatura</button>
+                <button type="button" data-plan-kind="emergency">Tengo examen pronto</button>
+              </div>
+              <form id="chat-form" class="chat-form main-chat-form">
+                <input id="chat-input" type="text" autocomplete="off" placeholder="Escribe tu duda o pide una tarea..." />
+                <div class="chat-photo-menu">
+                  <button id="chat-photo-toggle" class="secondary-button attach-chat-label" type="button" aria-expanded="false" aria-controls="chat-photo-options">📷 Foto</button>
+                  <div id="chat-photo-options" class="chat-photo-options hidden">
+                    <button id="chat-camera-trigger" class="chat-photo-option" type="button">Hacer foto</button>
+                    <input id="chatCameraInput" type="file" accept="image/*" capture="environment" hidden />
+                    <button id="chat-gallery-trigger" class="chat-photo-option" type="button">Elegir foto</button>
+                    <input id="chatGalleryInput" type="file" accept="image/*" hidden />
+                  </div>
+                </div>
+                <button class="primary-button ui-action-primary" type="submit">Enviar</button>
+              </form>
+              <p id="chat-attachment-status" class="chat-attachment-status hidden" aria-live="polite"></p>
+            </article>
+
+            <aside class="study-tools-panel ui-level-2" aria-label="Herramientas de estudio">
+              <div class="tools-panel-header">
+                <span class="ui-level-label level-2">Herramientas</span>
+                <h3>Herramientas de estudio</h3>
+                <p class="drawer-copy">Acciones rápidas del bloque actual.</p>
+              </div>
+
+              <section class="tool-group ui-level-3" aria-label="Material">
+                <h4>📚 Material</h4>
+                <div class="compact-action-grid">
+                  <button id="show-files" class="secondary-button compact-tool-button ui-action-secondary" type="button">
+                    <strong>Archivos/fotos</strong>
+                    <span>Subir o escanear.</span>
+                  </button>
+                  <button id="show-material-generator" class="secondary-button compact-tool-button ui-action-secondary" type="button">
+                    <strong>Generar material</strong>
+                    <span>Resumen, test y tarjetas.</span>
+                  </button>
+                  <button id="show-material-inbox" class="secondary-button compact-tool-button ui-action-secondary" type="button">
+                    <strong>Bandeja de material</strong>
+                    <span>Organizar pendientes.</span>
+                  </button>
+                  <button id="show-visual-pending" class="secondary-button compact-tool-button ui-action-secondary" type="button">
+                    <strong>Visual pendiente</strong>
+                    <span>Fotos, PDFs y calendarios.</span>
+                  </button>
+                </div>
+              </section>
+
+              <section class="tool-group ui-level-3" aria-label="Entrenamiento">
+                <h4>🎯 Entrenamiento</h4>
+                <div class="compact-action-grid">
+                  <button id="flashcards-action" class="secondary-button compact-tool-button ui-action-secondary" type="button">
+                    <strong>Flashcards</strong>
+                    <span>Repaso tipo Anki.</span>
+                  </button>
+                  <button id="mock-exam-action" class="secondary-button compact-tool-button ui-action-secondary" type="button">
+                    <strong>Mini-simulacro</strong>
+                    <span>Preguntas de examen.</span>
+                  </button>
+                </div>
+              </section>
+
+              <section class="tool-group ui-level-3" aria-label="Seguimiento">
+                <h4>⚠️ Seguimiento</h4>
+                <div class="compact-action-grid">
+                  <button id="show-errors" class="secondary-button compact-tool-button ui-action-secondary" type="button">
+                    <strong>Errores frecuentes</strong>
+                    <span>Memoria del bloque.</span>
+                  </button>
+                  <button id="show-training" class="secondary-button compact-tool-button ui-action-secondary" type="button">
+                    <strong>Entrenamiento</strong>
+                    <span>Plan según fallos.</span>
+                  </button>
+                  <button id="show-difficult-concepts" class="secondary-button compact-tool-button ui-action-secondary" type="button">
+                    <strong>Conceptos difíciles</strong>
+                    <span>Ideas marcadas.</span>
+                  </button>
+                </div>
+              </section>
+
+              <section class="tool-group ui-level-3" aria-label="Organización">
+                <h4>🗂️ Organización</h4>
+                <div class="upcoming-events-card">
+                  <strong>Próximos eventos</strong>
+                  <div id="upcoming-events-list" class="upcoming-events-list"></div>
+                </div>
+                <div class="compact-action-grid">
+                  <button id="show-planning-assistant" class="secondary-button compact-tool-button ui-action-secondary" type="button">
+                    <strong>Planificar estudio</strong>
+                    <span>Solo si lo necesitas.</span>
+                  </button>
+                  <button id="show-planner" class="secondary-button compact-tool-button ui-action-secondary" type="button">
+                    <strong>Ver calendario</strong>
+                    <span>Agenda completa.</span>
+                  </button>
+                  <button id="custom-focus-action" class="secondary-button compact-tool-button ui-action-secondary" type="button">
+                    <strong>Crear curso</strong>
+                    <span>Plan personalizado.</span>
+                  </button>
+                  <button class="secondary-button compact-tool-button ui-action-secondary" type="button" data-open-history-shortcut>
+                    <strong>Historial/PDF</strong>
+                    <span>Material guardado.</span>
+                  </button>
+                </div>
+              </section>
+            </aside>
+          </section>
+
+          <div id="planning-assistant-section" class="drawer ui-level-1 hidden">
+            <div class="tool-screen-header ui-level-1">
+              <div>
+                <span class="ui-level-label level-1">Modo planificación</span>
+                <h3>Planificar estudio</h3>
+                <p class="drawer-copy">Elige solo lo que necesitas ahora. No se guarda nada hasta confirmar.</p>
+              </div>
+              <button class="help-button ui-help" type="button" data-help-title="Planificación bajo demanda" data-help-text="Este flujo crea una propuesta breve. El calendario solo se actualiza cuando pulsas Guardar en calendario.">ℹ️</button>
+              <button class="text-button" type="button" data-back-main>← Volver al chat</button>
+            </div>
+            <div class="planning-options ui-level-2">
+              <button type="button" data-plan-kind="today">Planificar hoy</button>
+              <button type="button" data-plan-kind="week">Planificar esta semana</button>
+              <button type="button" data-plan-kind="subject">Planificar una asignatura</button>
+              <button type="button" data-plan-kind="exam">Planificar hasta un examen</button>
+              <button type="button" data-plan-kind="express">Modo express</button>
+              <button type="button" data-plan-kind="programmed">Modo programado</button>
+              <button type="button" data-plan-kind="christmas">Plan de Navidad</button>
+              <button type="button" data-plan-kind="easter">Plan de Semana Santa</button>
+              <button type="button" data-plan-kind="reviews">Organizar repasos</button>
+              <button type="button" data-plan-kind="reorganize">Reorganizar por evento</button>
+              <button type="button" data-plan-kind="emergency">Plan rápido de emergencia</button>
+              <button type="button" data-plan-kind="now">¿Qué estudio ahora?</button>
+            </div>
+            <form id="quick-plan-form" class="planner-form quick-plan-form ui-level-2">
+              <input id="quick-plan-kind" type="hidden" value="today" />
+              <label>
+                <span id="quick-plan-time-label">¿Cuánto tiempo tienes?</span>
+                <input id="quick-plan-time" type="text" placeholder="Ej. 45 minutos hoy / 1 hora al día" />
+              </label>
+              <label>
+                <span id="quick-plan-priority-label">¿Qué quieres priorizar?</span>
+                <input id="quick-plan-priority" type="text" placeholder="Asignatura, tema o bloque" />
+              </label>
+              <label>
+                <span id="quick-plan-extra-label">¿Hay examen, evento o algo que deba saber?</span>
+                <input id="quick-plan-extra" type="text" placeholder="Ej. examen el viernes, entrenamiento a las 18:00..." />
+              </label>
+              <button class="primary-button ui-action-primary" type="submit">Crear propuesta</button>
+            </form>
+            <section id="quick-plan-result" class="quick-plan-result" aria-live="polite"></section>
           </div>
 
-          <div id="material-generator-section" class="drawer hidden">
-            <div class="tool-screen-header">
+          <div id="visual-pending-section" class="drawer ui-level-1 hidden">
+            <div class="tool-screen-header ui-level-1">
               <div>
+                <span class="ui-level-label level-1">Material pendiente</span>
+                <h3>Material visual pendiente</h3>
+                <p class="drawer-copy">Fotos, PDFs y calendarios guardados solo como metadatos.</p>
+              </div>
+              <button class="help-button ui-help" type="button" data-help-title="Material visual pendiente" data-help-text="No se guarda el archivo real ni base64. Solo metadatos para futura IA visual/OCR.">ℹ️</button>
+              <button class="text-button" type="button" data-back-main>← Volver al panel principal</button>
+            </div>
+            <div class="visual-pending-list" id="visual-pending-list" aria-live="polite"></div>
+          </div>
+
+          <div id="material-inbox-section" class="drawer ui-level-1 hidden">
+            <div class="tool-screen-header ui-level-1">
+              <div>
+                <span class="ui-level-label level-1">Material</span>
+                <h3>Bandeja de material</h3>
+                <p class="drawer-copy">Revisa, clasifica y convierte materiales pendientes.</p>
+              </div>
+              <button class="help-button ui-help" type="button" data-help-title="Bandeja de material" data-help-text="Agrupa fotos, archivos, calendarios, respuestas, materiales generados y conceptos difíciles. Solo se guardan metadatos cuando son archivos o imágenes.">ℹ️</button>
+              <button class="text-button" type="button" data-back-main>← Volver al panel principal</button>
+            </div>
+            <section class="material-inbox-filters ui-level-2" aria-label="Filtros de bandeja">
+              <label>
+                Tipo
+                <select id="inbox-type-filter">
+                  <option value="todos">Todos</option>
+                  <option value="pendiente_clasificar">Pendiente de clasificar</option>
+                  <option value="pendiente_ia_real">Pendiente de IA real</option>
+                  <option value="fotos">Fotos</option>
+                  <option value="pdf">PDFs</option>
+                  <option value="calendario">Calendarios</option>
+                  <option value="concepto_dificil">Conceptos difíciles</option>
+                  <option value="material_generado">Material generado</option>
+                  <option value="archivado">Archivados</option>
+                </select>
+              </label>
+              <label>
+                Asignatura
+                <select id="inbox-subject-filter"></select>
+              </label>
+              <label>
+                Bloque
+                <select id="inbox-block-filter"></select>
+              </label>
+              <label>
+                Fecha
+                <input id="inbox-date-filter" type="date" />
+              </label>
+            </section>
+            <section class="material-inbox-layout">
+              <div id="material-inbox-list" class="material-inbox-list ui-level-2" aria-live="polite"></div>
+              <aside id="material-inbox-detail" class="material-inbox-detail ui-level-2">
+                <p class="drawer-copy">Selecciona un item para ver detalle y acciones.</p>
+              </aside>
+            </section>
+          </div>
+
+          <div id="material-generator-section" class="drawer ui-level-1 hidden">
+            <div class="tool-screen-header ui-level-1">
+              <div>
+                <span class="ui-level-label level-1">Nivel 1 · Subpantalla</span>
                 <h3>✨ Generar material</h3>
                 <p class="drawer-copy">Crea material para este bloque.</p>
               </div>
-              <button class="help-button" type="button" data-help-title="Generar material" data-help-text="Puedes generar resumen, flashcards o simulacro desde un tema, una parte concreta, contenido pegado o archivos del bloque. Por ahora es simulación: no usa IA real ni analiza archivos.">ℹ️</button>
+              <button class="help-button ui-help" type="button" data-help-title="Generar material" data-help-text="Puedes generar resumen, flashcards o simulacro desde un tema, una parte concreta, contenido pegado o archivos del bloque. Por ahora es simulación: no usa IA real ni analiza archivos.">ℹ️</button>
               <button class="text-button" type="button" data-back-main>← Volver al panel principal</button>
             </div>
-            <form id="material-generator-form" class="material-generator-form">
+            <form id="material-generator-form" class="material-generator-form ui-level-2">
               <label>
-                <span class="field-label-row">Fuente <button class="help-button tiny" type="button" data-help-title="Fuente del material" data-help-text="Elige de dónde saldrá el material simulado: tema general, parte concreta, contenido pegado o archivos/fotos ya subidos.">?</button></span>
+                <span class="field-label-row">Fuente <button class="help-button tiny ui-help" type="button" data-help-title="Fuente del material" data-help-text="Elige de dónde saldrá el material simulado: tema general, parte concreta, contenido pegado o archivos/fotos ya subidos.">?</button></span>
                 <select id="material-source-type">
                   <option value="topic">Tema general</option>
                   <option value="subtopic">Parte concreta de un tema</option>
@@ -116,20 +315,20 @@
                 </select>
               </label>
               <label>
-                <span class="field-label-row">Tema principal <button class="help-button tiny" type="button" data-help-title="Tema principal" data-help-text="Escribe el tema base: por ejemplo, Rectas en sistema diédrico. Si usas contenido pegado o archivos, puede quedarse vacío.">?</button></span>
+                <span class="field-label-row">Tema principal <button class="help-button tiny ui-help" type="button" data-help-title="Tema principal" data-help-text="Escribe el tema base: por ejemplo, Rectas en sistema diédrico. Si usas contenido pegado o archivos, puede quedarse vacío.">?</button></span>
                 <input id="material-topic" type="text" placeholder="Rectas en sistema diédrico" />
               </label>
               <label id="material-subtopic-label">
-                <span class="field-label-row">Parte concreta <button class="help-button tiny" type="button" data-help-title="Parte concreta" data-help-text="Úsalo cuando quieras centrar el material en una parte pequeña del tema, como recta de perfil y trazas.">?</button></span>
+                <span class="field-label-row">Parte concreta <button class="help-button tiny ui-help" type="button" data-help-title="Parte concreta" data-help-text="Úsalo cuando quieras centrar el material en una parte pequeña del tema, como recta de perfil y trazas.">?</button></span>
                 <input id="material-subtopic" type="text" placeholder="Solo recta de perfil y trazas" />
               </label>
               <label id="material-pasted-label" class="material-wide">
-                <span class="field-label-row">Contenido pegado <button class="help-button tiny" type="button" data-help-title="Contenido pegado" data-help-text="Pega un fragmento breve de apuntes. En modo simulación solo se usa una vista previa, no hay análisis IA real.">?</button></span>
+                <span class="field-label-row">Contenido pegado <button class="help-button tiny ui-help" type="button" data-help-title="Contenido pegado" data-help-text="Pega un fragmento breve de apuntes. En modo simulación solo se usa una vista previa, no hay análisis IA real.">?</button></span>
                 <textarea id="material-pasted-content" rows="6" placeholder="Pega aquí el texto, apuntes o fragmento que quieres convertir en material de estudio"></textarea>
               </label>
               <div id="material-files-label" class="material-wide hidden">
                 <strong>Archivos/fotos de este bloque</strong>
-                <button class="help-button tiny" type="button" data-help-title="Archivos del bloque" data-help-text="Selecciona materiales ya subidos. Ahora solo se usan como referencia simulada; más adelante podrán procesarse con IA/OCR.">?</button>
+                <button class="help-button tiny ui-help" type="button" data-help-title="Archivos del bloque" data-help-text="Selecciona materiales ya subidos. Ahora solo se usan como referencia simulada; más adelante podrán procesarse con IA/OCR.">?</button>
                 <div id="material-file-options" class="material-file-options"></div>
               </div>
               <label>
@@ -144,27 +343,52 @@
               <label>
                 Tipo de material
                 <select id="material-type">
-                  <option value="resumen">resumen</option>
-                  <option value="flashcards">flashcards</option>
-                  <option value="simulacro">simulacro</option>
-                  <option value="todo" selected>todo</option>
+                  <option value="resumen">Resumen</option>
+                  <option value="flashcards">Flashcards</option>
+                  <option value="simulacro">Simulacro</option>
+                  <option value="conceptos_clave">Conceptos clave</option>
+                  <option value="errores_frecuentes">Errores frecuentes</option>
+                  <option value="pack_completo" selected>Pack completo</option>
                 </select>
               </label>
-              <button class="primary-button" type="submit">Generar material</button>
+              <button class="primary-button ui-action-primary" type="submit">Generar material</button>
             </form>
             <div id="material-generator-result" class="material-result" aria-live="polite"></div>
+            <section class="material-history-panel ui-level-2" aria-label="Materiales generados">
+              <div class="material-history-header">
+                <div>
+                  <span class="ui-level-label level-2">Nivel 2 · Historial</span>
+                  <h4>Materiales generados</h4>
+                  <p class="drawer-copy">Historial de este bloque.</p>
+                </div>
+                <label>
+                  Filtrar
+                  <select id="material-history-filter">
+                    <option value="todos">Todos</option>
+                    <option value="resumen">Resumen</option>
+                    <option value="flashcards">Flashcards</option>
+                    <option value="simulacro">Simulacro</option>
+                    <option value="conceptos_clave">Conceptos clave</option>
+                    <option value="errores_frecuentes">Errores frecuentes</option>
+                    <option value="pack_completo">Pack completo</option>
+                  </select>
+                </label>
+              </div>
+              <div id="material-history-list" class="material-history-list" aria-live="polite"></div>
+            </section>
           </div>
 
-          <div id="custom-course-section" class="drawer hidden">
-            <div class="tool-screen-header">
+          <div id="custom-course-section" class="drawer ui-level-1 hidden">
+            <div class="tool-screen-header ui-level-1">
               <div>
+                <span class="ui-level-label level-1">Nivel 1 · Subpantalla</span>
                 <h3>Crear curso personalizado</h3>
                 <p class="drawer-copy">Planifica tu estudio.</p>
               </div>
-              <button class="help-button" type="button" data-help-title="Curso personalizado" data-help-text="Crea un plan simulado según tema, duración, tiempo diario, nivel, objetivo y si hay examen cercano. No llama a IA real todavía.">ℹ️</button>
+              <button class="help-button ui-help" type="button" data-help-title="Curso personalizado" data-help-text="Crea un plan simulado según tema, duración, tiempo diario, nivel, objetivo y si hay examen cercano. No llama a IA real todavía.">ℹ️</button>
               <button class="text-button" type="button" data-back-main>← Volver al panel principal</button>
             </div>
-            <form id="custom-course-form" class="custom-course-form">
+            <form id="custom-course-form" class="custom-course-form ui-level-2">
               <input id="course-topic" type="text" value="Analisis gramatical" aria-label="Tema del curso" />
               <input id="course-duration" type="text" value="1 semana" aria-label="Duracion total" />
               <input id="daily-time" type="text" value="1 hora al dia" aria-label="Tiempo diario disponible" />
@@ -178,23 +402,24 @@
                 <option value="Si" selected>Examen cercano: sí</option>
                 <option value="No">Examen cercano: no</option>
               </select>
-              <button class="primary-button" type="submit">Generar curso</button>
+              <button class="primary-button ui-action-primary" type="submit">Generar curso</button>
             </form>
             <article id="custom-course-result" class="course-result" aria-live="polite"></article>
           </div>
 
-          <div id="errors-section" class="drawer hidden">
-            <div class="tool-screen-header">
+          <div id="errors-section" class="drawer ui-level-1 hidden">
+            <div class="tool-screen-header ui-level-1">
               <div>
+                <span class="ui-level-label level-1">Nivel 1 · Subpantalla</span>
                 <h3>Errores frecuentes</h3>
                 <p class="drawer-copy">Guarda y repasa fallos.</p>
               </div>
-              <button class="help-button" type="button" data-help-title="Errores frecuentes" data-help-text="Los errores se guardan por alumno, curso, asignatura y bloque. Sirven para crear entrenamiento recomendado, flashcards y simulacros personalizados en modo simulación.">ℹ️</button>
+              <button class="help-button ui-help" type="button" data-help-title="Errores frecuentes" data-help-text="Los errores se guardan por alumno, curso, asignatura y bloque. Sirven para crear entrenamiento recomendado, flashcards y simulacros personalizados en modo simulación.">ℹ️</button>
               <button class="text-button" type="button" data-back-main>← Volver al panel principal</button>
             </div>
             <div id="errors-summary" class="error-summary" aria-live="polite"></div>
             <ul id="errors-list" class="errors-list"></ul>
-            <form id="error-form" class="error-form">
+            <form id="error-form" class="error-form ui-level-2">
               <input id="error-title" type="text" placeholder="Titulo del error" aria-label="Titulo del error" />
               <textarea id="error-description" rows="3" placeholder="Descripcion breve..." aria-label="Descripcion del error"></textarea>
               <select id="error-type" aria-label="Tipo de error">
@@ -211,31 +436,32 @@
                 <option value="media" selected>media</option>
                 <option value="alta">alta</option>
               </select>
-              <button class="secondary-button" type="submit">Guardar error</button>
+              <button class="secondary-button ui-action-secondary" type="submit">Guardar error</button>
             </form>
           </div>
 
-          <div id="files-section" class="drawer hidden">
-            <div class="tool-screen-header">
+          <div id="files-section" class="drawer ui-level-1 hidden">
+            <div class="tool-screen-header ui-level-1">
               <div>
+                <span class="ui-level-label level-1">Nivel 1 · Subpantalla</span>
                 <h3>Archivos del bloque</h3>
                 <p class="drawer-copy">Sube apuntes, ejercicios o fotos.</p>
               </div>
-              <button class="help-button" type="button" data-help-title="Archivos del bloque" data-help-text="Puedes subir PDFs, documentos o fotos. Ahora solo se guardan metadatos asociados al bloque activo; no se guarda contenido real ni se analiza con IA todavía.">ℹ️</button>
+              <button class="help-button ui-help" type="button" data-help-title="Archivos del bloque" data-help-text="Puedes subir PDFs, documentos o fotos. Ahora solo se guardan metadatos asociados al bloque activo; no se guarda contenido real ni se analiza con IA todavía.">ℹ️</button>
               <button class="text-button" type="button" data-back-main>← Volver al panel principal</button>
             </div>
             <p id="file-context" class="drawer-copy"></p>
-            <div class="file-detail-grid">
+            <div class="file-detail-grid ui-level-2">
               <label>
-                <span class="field-label-row">Tema <button class="help-button tiny" type="button" data-help-title="Tema" data-help-text="Puedes indicar el tema manualmente. Si lo dejas vacío, quedará marcado como pendiente de detección por IA futura.">?</button></span>
+                <span class="field-label-row">Tema <button class="help-button tiny ui-help" type="button" data-help-title="Tema" data-help-text="Puedes indicar el tema manualmente. Si lo dejas vacío, quedará marcado como pendiente de detección por IA futura.">?</button></span>
                 <input id="file-topic-name" type="text" placeholder="Rectas en sistema diédrico" />
               </label>
               <label>
-                <span class="field-label-row">Parte <button class="help-button tiny" type="button" data-help-title="Parte del tema" data-help-text="Opcional. Si no sabes la parte exacta, déjala vacía para que más adelante la IA la sugiera con el contexto y la imagen.">?</button></span>
+                <span class="field-label-row">Parte <button class="help-button tiny ui-help" type="button" data-help-title="Parte del tema" data-help-text="Opcional. Si no sabes la parte exacta, déjala vacía para que más adelante la IA la sugiera con el contexto y la imagen.">?</button></span>
                 <input id="file-subtopic-name" type="text" placeholder="Recta de perfil" />
               </label>
               <label>
-                <span class="field-label-row">Tipo <button class="help-button tiny" type="button" data-help-title="Tipo de material" data-help-text="Examen oficial tiene prioridad alta porque puede entrenar mejor de cara a pruebas reales. Examen no oficial tiene prioridad media.">?</button></span>
+                <span class="field-label-row">Tipo <button class="help-button tiny ui-help" type="button" data-help-title="Tipo de material" data-help-text="Examen oficial tiene prioridad alta porque puede entrenar mejor de cara a pruebas reales. Examen no oficial tiene prioridad media.">?</button></span>
                 <select id="file-material-kind">
                   <option value="apunte">apunte</option>
                   <option value="foto_cuaderno">foto de cuaderno</option>
@@ -248,7 +474,7 @@
                 </select>
               </label>
               <label>
-                <span class="field-label-row">Origen <button class="help-button tiny" type="button" data-help-title="Origen" data-help-text="Indica desde dónde viene el archivo. Si usas el escáner móvil, se guardará automáticamente como móvil.">?</button></span>
+                <span class="field-label-row">Origen <button class="help-button tiny ui-help" type="button" data-help-title="Origen" data-help-text="Indica desde dónde viene el archivo. Si usas el escáner móvil, se guardará automáticamente como móvil.">?</button></span>
                 <select id="file-source-device">
                   <option value="desconocido">desconocido</option>
                   <option value="ordenador">ordenador</option>
@@ -257,9 +483,9 @@
                 </select>
               </label>
             </div>
-            <p class="ai-detection-note">🤖 Tema pendiente de IA si lo dejas vacío. <button class="help-button tiny" type="button" data-help-title="Tema pendiente de IA" data-help-text="Si no indicas tema o parte, el archivo queda preparado para que una IA futura lo clasifique usando alumno, curso, asignatura, bloque, tipo de material e imagen.">?</button></p>
+            <p class="ai-detection-note ui-level-3">🤖 Tema pendiente de IA si lo dejas vacío. <button class="help-button tiny ui-help" type="button" data-help-title="Tema pendiente de IA" data-help-text="Si no indicas tema o parte, el archivo queda preparado para que una IA futura lo clasifique usando alumno, curso, asignatura, bloque, tipo de material e imagen.">?</button></p>
             <div class="upload-choice-grid upload-choice-grid-desktop">
-              <label for="desktop-file-input" class="upload-choice upload-action-card">
+              <label for="desktop-file-input" class="upload-choice upload-action-card ui-level-2">
                 <strong>💻 Subir archivo desde ordenador</strong>
                 <span>PDF, documentos o imágenes guardadas. Se añaden al bloque al seleccionarlos.</span>
               </label>
@@ -271,18 +497,18 @@
                 accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,image/*"
               />
             </div>
-            <section class="mobile-scanner-panel" aria-label="Escaner de fotos con móvil">
+            <section class="mobile-scanner-panel ui-level-2" aria-label="Escaner de fotos con móvil">
               <div class="scanner-copy">
                 <strong>📱 Escanear con móvil</strong>
                 <span>Haz fotos y guárdalas juntas.</span>
-                <button class="help-button tiny" type="button" data-help-title="Escáner móvil" data-help-text="En iPhone, pulsa directamente sobre Hacer foto. Cada selección se añade a Fotos pendientes. Puedes hacer varias fotos, quitar o desmarcar algunas, y luego guardar solo las seleccionadas.">?</button>
+                <button class="help-button tiny ui-help" type="button" data-help-title="Escáner móvil" data-help-text="En iPhone, pulsa directamente sobre Hacer foto. Cada selección se añade a Fotos pendientes. Puedes hacer varias fotos, quitar o desmarcar algunas, y luego guardar solo las seleccionadas.">?</button>
               </div>
               <div class="scanner-actions">
-              <label for="mobile-camera-input" class="upload-choice upload-action-card">
+              <label for="mobile-camera-input" class="upload-choice upload-action-card ui-level-2">
                   <strong>📸 Hacer foto</strong>
                   <span>Abrir cámara.</span>
                 </label>
-                <label for="mobile-camera-input" class="upload-choice upload-action-card">
+                <label for="mobile-camera-input" class="upload-choice upload-action-card ui-level-2">
                   <strong>➕ Añadir otra foto</strong>
                   <span>Sumar imagen.</span>
               </label>
@@ -296,13 +522,14 @@
               />
               </div>
             </section>
-            <section class="pending-photo-panel" aria-label="Fotos pendientes de guardar">
+            <section class="pending-photo-panel ui-level-2" aria-label="Fotos pendientes de guardar">
               <div class="pending-photo-header">
                 <div>
+                  <span class="ui-level-label level-2">Nivel 2 · Escáner</span>
                   <h4>Fotos pendientes de guardar</h4>
                   <p class="drawer-copy">Elige cuáles guardar.</p>
                 </div>
-                <button id="save-mobile-photos" class="primary-button" type="button">Guardar fotos seleccionadas en este bloque</button>
+                <button id="save-mobile-photos" class="primary-button ui-action-primary" type="button">Guardar fotos seleccionadas en este bloque</button>
               </div>
               <div id="pending-photo-list" class="pending-photo-list" aria-live="polite"></div>
             </section>
@@ -310,39 +537,194 @@
             <div id="file-list" class="file-list" aria-live="polite"></div>
           </div>
 
-          <div id="training-section" class="drawer hidden">
-            <div class="tool-screen-header">
+          <div id="training-section" class="drawer ui-level-1 hidden">
+            <div class="tool-screen-header ui-level-1">
               <div>
+                <span class="ui-level-label level-1">Nivel 1 · Subpantalla</span>
                 <h3>Entrenamiento recomendado</h3>
                 <p class="drawer-copy">Prioriza qué repasar.</p>
               </div>
-              <button class="help-button" type="button" data-help-title="Entrenamiento recomendado" data-help-text="Analiza los errores guardados en este bloque y propone acciones simuladas: flashcards, mini-simulacro o repaso del bloque.">ℹ️</button>
+              <button class="help-button ui-help" type="button" data-help-title="Entrenamiento recomendado" data-help-text="Analiza los errores guardados en este bloque y propone acciones simuladas: flashcards, mini-simulacro o repaso del bloque.">ℹ️</button>
               <button class="text-button" type="button" data-back-main>← Volver al panel principal</button>
             </div>
             <div id="training-content" class="course-result" aria-live="polite"></div>
             <div class="training-actions">
-              <button id="training-flashcards" class="secondary-button" type="button">Crear flashcards desde errores</button>
-              <button id="training-mock" class="secondary-button" type="button">Crear mini-simulacro desde errores</button>
-              <button id="training-review-block" class="secondary-button" type="button">Marcar bloque como repasado</button>
-              <button id="training-back" class="secondary-button" type="button">← Volver al panel principal</button>
+              <button id="training-flashcards" class="secondary-button ui-action-secondary" type="button">Crear flashcards desde errores</button>
+              <button id="training-mock" class="secondary-button ui-action-secondary" type="button">Crear mini-simulacro desde errores</button>
+              <button id="training-review-block" class="secondary-button ui-action-secondary" type="button">Marcar bloque como repasado</button>
+              <button id="training-back" class="secondary-button ui-action-secondary" type="button">← Volver al panel principal</button>
             </div>
+          </div>
+
+          <div id="difficult-concepts-section" class="drawer ui-level-1 hidden">
+            <div class="tool-screen-header ui-level-1">
+              <div>
+                <span class="ui-level-label level-1">Nivel 1 · Subpantalla</span>
+                <h3>Conceptos difíciles</h3>
+                <p class="drawer-copy">Ideas guardadas desde respuestas del profesor IA.</p>
+              </div>
+              <button class="help-button ui-help" type="button" data-help-title="Conceptos difíciles" data-help-text="Marca una respuesta del chat como concepto difícil para repasarla, crear flashcards o generar preguntas en modo simulación.">ℹ️</button>
+              <button class="text-button" type="button" data-back-main>← Volver al panel principal</button>
+            </div>
+            <div class="training-actions">
+              <button id="concepts-create-flashcards" class="secondary-button ui-action-secondary" type="button">Crear flashcards desde conceptos</button>
+              <button id="concepts-create-mock" class="secondary-button ui-action-secondary" type="button">Crear preguntas desde conceptos</button>
+              <button id="concepts-schedule-review" class="secondary-button ui-action-secondary" type="button">Programar repaso</button>
+            </div>
+            <div id="difficult-concepts-list" class="concept-list" aria-live="polite"></div>
+          </div>
+
+          <div id="planner-section" class="drawer ui-level-1 hidden">
+            <div class="tool-screen-header ui-level-1">
+              <div>
+                <span class="ui-level-label level-1">Nivel 1 · Planificador</span>
+                <h3>Planificador de estudio</h3>
+                <p class="drawer-copy">Calendario adaptativo con espaciado, recuperación e intercalación.</p>
+              </div>
+              <button class="help-button ui-help" type="button" data-help-title="Planificador" data-help-text="Crea eventos manuales o genera un plan automático. Al completar una sesión, la reflexión puede añadir repasos extra si algo fue difícil.">ℹ️</button>
+              <button class="text-button" type="button" data-back-main>← Volver al panel principal</button>
+            </div>
+
+            <div class="planner-toolbar ui-level-2">
+              <div class="planner-view-buttons">
+                <button class="secondary-button" type="button" data-planner-view="month">Mes</button>
+                <button class="secondary-button" type="button" data-planner-view="week">Semana</button>
+                <button class="secondary-button" type="button" data-planner-view="day">Día</button>
+              </div>
+              <div class="planner-date-nav">
+                <button class="secondary-button" type="button" id="planner-prev">Anterior</button>
+                <button class="secondary-button" type="button" id="planner-today">Hoy</button>
+                <strong id="planner-current-label"></strong>
+                <button class="secondary-button" type="button" id="planner-next">Siguiente</button>
+              </div>
+            </div>
+
+            <section class="planner-layout">
+              <article class="planner-calendar-panel ui-level-2">
+                <div id="planner-period-summary" class="planner-period-summary" aria-live="polite"></div>
+                <div id="planner-calendar" class="planner-calendar" aria-live="polite"></div>
+                <section class="planner-period-events ui-level-3">
+                  <h4>Eventos del periodo</h4>
+                  <div id="planner-period-event-list" class="planner-period-event-list" aria-live="polite"></div>
+                </section>
+              </article>
+
+              <aside class="planner-side ui-level-2">
+                <section class="planner-form-card ui-level-3">
+                  <h4>Subir calendario</h4>
+                  <p class="drawer-copy">Foto o PDF como referencia. Pendiente de IA real.</p>
+                  <label for="calendar-import-input" class="upload-choice upload-action-card ui-level-2">
+                    <strong>Subir calendario foto/PDF</strong>
+                    <span>No se guarda el archivo real.</span>
+                  </label>
+                  <input id="calendar-import-input" class="visually-hidden-file-input" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,image/*" />
+                  <button id="calendar-manual-event" class="secondary-button ui-action-secondary" type="button">Crear eventos manualmente desde este calendario</button>
+                  <p id="calendar-import-status" class="upload-status hidden" aria-live="polite"></p>
+                </section>
+                <section class="planner-form-card ui-level-3">
+                  <h4>Añadir evento</h4>
+                  <form id="planner-event-form" class="planner-form">
+                    <input id="planner-event-id" type="hidden" />
+                    <select id="planner-event-type" aria-label="Tipo de evento">
+                      <option value="estudio">Estudio</option>
+                      <option value="repaso">Repaso</option>
+                      <option value="practica">Práctica</option>
+                      <option value="simulacro">Simulacro</option>
+                      <option value="ocio">Ocio</option>
+                      <option value="ejercicio">Ejercicio</option>
+                      <option value="familia">Familia</option>
+                      <option value="cumpleanos">Cumpleaños</option>
+                      <option value="comunion">Comunión</option>
+                      <option value="descanso">Descanso</option>
+                      <option value="examen">Examen</option>
+                      <option value="personal">Personal</option>
+                    </select>
+                    <input id="planner-event-title" type="text" placeholder="Título" required />
+                    <textarea id="planner-event-description" rows="2" placeholder="Descripción breve"></textarea>
+                    <input id="planner-event-date" type="date" required aria-label="Fecha del evento" />
+                    <input id="planner-event-start-time" type="time" aria-label="Hora inicio opcional" />
+                    <input id="planner-event-end-date" type="date" aria-label="Fecha fin opcional" />
+                    <input id="planner-event-end-time" type="time" aria-label="Hora fin opcional" />
+                    <input id="planner-event-duration" type="number" min="5" max="1440" step="5" placeholder="Duración en minutos (opcional)" aria-label="Duración opcional en minutos" />
+                    <select id="planner-event-priority" aria-label="Prioridad">
+                      <option value="normal">Prioridad normal</option>
+                      <option value="media" selected>Prioridad media</option>
+                      <option value="alta">Prioridad alta</option>
+                    </select>
+                    <button class="primary-button ui-action-primary" type="submit">Guardar evento</button>
+                  </form>
+                </section>
+
+                <section class="planner-form-card ui-level-3">
+                  <h4>Generar plan automático</h4>
+                  <form id="planner-plan-form" class="planner-form">
+                    <input id="planner-plan-subject" type="text" placeholder="Asignatura" required />
+                    <input id="planner-plan-topic" type="text" placeholder="Bloque/tema o temas separados por coma" />
+                    <input id="planner-exam-date" type="date" required />
+                    <select id="planner-initial-level">
+                      <option value="bajo">Nivel bajo</option>
+                      <option value="medio" selected>Nivel medio</option>
+                      <option value="alto">Nivel alto</option>
+                    </select>
+                    <input id="planner-daily-time" type="number" min="20" max="180" value="60" aria-label="Tiempo diario disponible" />
+                    <input id="planner-days-week" type="number" min="1" max="7" value="5" aria-label="Días por semana" />
+                    <select id="planner-goal">
+                      <option value="aprobar">Aprobar</option>
+                      <option value="buena nota" selected>Buena nota</option>
+                      <option value="máxima nota">Máxima nota</option>
+                    </select>
+                    <label class="planner-check"><input id="planner-include-breaks" type="checkbox" checked /> incluir descansos</label>
+                    <label class="planner-check"><input id="planner-include-exercise" type="checkbox" checked /> incluir ejercicio</label>
+                    <button class="primary-button ui-action-primary" type="submit">Generar plan</button>
+                  </form>
+                </section>
+              </aside>
+            </section>
+
+            <section class="planner-bottom">
+              <article class="planner-stats ui-level-2">
+                <h4>Estadísticas</h4>
+                <div id="planner-stats-content"></div>
+              </article>
+            </section>
+
+            <dialog id="planner-reflection-modal" class="help-modal" aria-labelledby="planner-reflection-title">
+              <div class="help-modal-card planner-reflection-card">
+                <div class="help-modal-header">
+                  <h2 id="planner-reflection-title">Reflexión rápida</h2>
+                  <button id="planner-reflection-close" class="text-button" type="button">Cerrar</button>
+                </div>
+                <form id="planner-reflection-form" class="planner-form">
+                  <input id="planner-reflection-event-id" type="hidden" />
+                  <textarea id="planner-understood" rows="2" placeholder="¿Qué entendí bien?"></textarea>
+                  <textarea id="planner-review-needed" rows="2" placeholder="¿Qué debo repasar?"></textarea>
+                  <select id="planner-difficulty">
+                    <option value="facil">Fácil</option>
+                    <option value="media" selected>Media</option>
+                    <option value="dificil">Difícil</option>
+                  </select>
+                  <button class="primary-button ui-action-primary" type="submit">Completar sesión</button>
+                </form>
+              </div>
+            </dialog>
           </div>
         </div>
       </section>
 
       <section id="focus-view" class="focus-view hidden" aria-label="Modo foco">
         <div class="focus-layout">
-          <header class="focus-header">
+          <header class="focus-header ui-level-1">
             <div>
+              <span class="ui-level-label level-1">Nivel 1 · Modo foco</span>
               <p class="eyebrow" id="focus-kicker">Modo foco</p>
               <h1 id="focus-title">Estudio programado</h1>
               <p id="focus-subtitle">Chat central, errores claros y una tarea cada vez.</p>
             </div>
-            <button class="help-button" type="button" data-help-title="Modo foco" data-help-text="Esta vista concentra la tarea actual: chat, explicación, errores, flashcards o simulacro. Para volver a la pantalla principal usa el botón de salida.">ℹ️</button>
-            <button id="exit-focus" class="secondary-button" type="button">Salir del modo foco</button>
+            <button class="help-button ui-help" type="button" data-help-title="Modo foco" data-help-text="Esta vista concentra la tarea actual: chat, explicación, errores, flashcards o simulacro. Para volver a la pantalla principal usa el botón de salida.">ℹ️</button>
+            <button id="exit-focus" class="secondary-button ui-action-secondary" type="button">Salir del modo foco</button>
           </header>
 
-          <section id="flashcard-review-panel" class="review-panel hidden" aria-live="polite">
+          <section id="flashcard-review-panel" class="review-panel ui-level-2 hidden" aria-live="polite">
             <div class="review-stage-header">
               <div>
                 <p class="eyebrow">Modo repaso</p>
@@ -370,7 +752,7 @@
           </section>
 
           <section class="focus-main">
-            <article class="chat-card">
+            <article class="chat-card ui-level-2">
               <div id="focus-explanation" class="focus-explanation"></div>
               <div id="focus-chat-messages" class="chat-messages"></div>
               <form id="focus-chat-form" class="chat-form">
@@ -379,7 +761,7 @@
               </form>
             </article>
 
-            <aside class="focus-side">
+            <aside class="focus-side ui-level-2">
               <h2>Errores a vigilar</h2>
               <div id="focus-errors" class="card-list"></div>
               <div class="focus-tools">
@@ -387,7 +769,7 @@
                 <button id="focus-create-mock-errors" class="secondary-button" type="button">📝 Crear mini-simulacro desde errores</button>
               </div>
               <h2>Flashcards</h2>
-              <button class="help-button inline-help" type="button" data-help-title="Flashcards" data-help-text="Puedes crear tarjetas desde errores, repasarlas en modo Anki/Quizlet e imprimir todas o solo las seleccionadas con respuestas incluidas.">ℹ️</button>
+              <button class="help-button inline-help ui-help" type="button" data-help-title="Flashcards" data-help-text="Puedes crear tarjetas desde errores, repasarlas en modo Anki/Quizlet e imprimir todas o solo las seleccionadas con respuestas incluidas.">ℹ️</button>
               <div class="flashcard-toolbar" aria-label="Herramientas de flashcards">
                 <button id="focus-review-mode" class="secondary-button" type="button">🧠 Iniciar modo repaso</button>
                 <button id="focus-select-all-flashcards" class="secondary-button" type="button">Seleccionar todas</button>
@@ -395,10 +777,12 @@
                 <button id="focus-print-all" class="secondary-button" type="button">🖨️ Imprimir todas</button>
                 <button id="focus-print-selected" class="secondary-button" type="button">🖨️ Imprimir seleccionadas</button>
                 <button id="focus-print-qa" class="secondary-button" type="button">📄 Imprimir preguntas y respuestas</button>
+                <button id="focus-schedule-flashcards" class="secondary-button" type="button">📅 Añadir repaso</button>
               </div>
               <div id="focus-flashcards" class="card-list"></div>
               <h2>Preguntas generadas</h2>
-              <button class="help-button inline-help" type="button" data-help-title="Simulacro" data-help-text="Las preguntas de simulacro son simuladas y pueden generarse desde errores o desde material del bloque. No hay IA real conectada todavía.">ℹ️</button>
+              <button class="help-button inline-help ui-help" type="button" data-help-title="Simulacro" data-help-text="Las preguntas de simulacro son simuladas y pueden generarse desde errores o desde material del bloque. No hay IA real conectada todavía.">ℹ️</button>
+              <button id="focus-schedule-mock" class="secondary-button" type="button">📅 Añadir simulacro al calendario</button>
               <div id="focus-exercises" class="card-list"></div>
             </aside>
           </section>
@@ -417,9 +801,8 @@
         <div id="session-title"></div>
         <button id="planned-mode" type="button"><span></span></button>
         <button id="rapid-mode" type="button"><span></span></button>
-        <div id="chat-title"></div>
-        <div id="chat-messages"></div>
-        <form id="chat-form"><input id="chat-input" /><button type="submit"></button></form>
+        <div id="legacy-chat-title"></div>
+        <div id="legacy-chat-messages"></div>
         <div id="mode-pill"></div>
         <div id="insight-title"></div>
         <div id="subject-insights"></div>

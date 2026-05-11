@@ -20,7 +20,15 @@ El MVP actual tiene dos niveles de uso:
 - Preparacion: alumno, curso, asignatura, bloque y tres acciones principales.
 - Modo foco: chat central y errores a vigilar, sin distracciones.
 - Flashcards: generacion desde errores, modo repaso e impresion limpia.
-- Generar material: resumen, flashcards y simulacro desde tema, parte concreta, contenido pegado o archivos/fotos del bloque.
+- Generar material: resumen, flashcards, simulacro, conceptos clave, errores frecuentes o pack completo desde tema, parte concreta, contenido pegado o archivos/fotos del bloque, con impresión limpia para guardar como PDF desde el navegador.
+- Historial de materiales generados del bloque activo, con filtro por tipo, abrir, imprimir/PDF y eliminar.
+- Planificador: calendario, eventos manuales, planes automáticos, reflexión adaptativa y estadísticas.
+- Calendario visual con lista de eventos del periodo, resumen, colores por tipo y eventos de varias horas o varios días.
+- Planificación bajo demanda: el chat sigue siendo el modo principal y los planes breves no se guardan hasta confirmar.
+- Planificación flexible: express, programado, periodos especiales y recomendación "Qué estudio ahora".
+- Calendarios foto/PDF guardados como metadatos pendientes de IA real, sin OCR ni lectura real.
+- Chat con foto adjunta desde cámara o galería como metadato y sección `Material visual pendiente` para dudas visuales, calendarios y PDFs.
+- Bandeja de material: vista central para clasificar, observar, convertir, programar, archivar o eliminar metadatos de materiales pendientes.
 
 Todo el producto sigue siendo una simulacion. No hay IA real ni analisis real de archivos.
 
@@ -77,11 +85,12 @@ Gonzalo esta preparado a nivel de estructura para una fase posterior:
 - Acciones de memoria de errores: repasado, superado y eliminar.
 - Entrenamiento recomendado basado en errores del bloque.
 - Flashcards y mini-simulacros generados desde la memoria de errores del bloque.
-- Generador flexible de material en modo simulacion desde tema, parte concreta, contenido pegado o archivos/fotos subidas.
+- Generador flexible de material en modo simulacion desde tema, parte concreta, contenido pegado o archivos/fotos subidas, con integración de flashcards cuando el tipo elegido las genera.
 - Trazabilidad visible de fuente y regla de apoyo visual inteligente: imprescindible, opcional o no necesario.
 - Placeholders de apoyo visual sin generacion real de imagen ni llamadas API.
 - Creacion simulada de curso personalizado con plan por dias, objetivos, ejercicios, flashcards, errores a vigilar y repaso final.
 - Persistencia local con `localStorage`.
+- Planificador de Estudio Adaptativo con eventos por contexto, planes con espaciado/recuperación/intercalación, reflexión y estadísticas.
 
 ## Servicios JS preparados
 
@@ -93,6 +102,7 @@ Gonzalo esta preparado a nivel de estructura para una fase posterior:
 - `services/errorTrainingGeneratorService.js`: generador simulado de flashcards y mini-simulacros desde errores.
 - `services/flashcardReviewService.js`: resultados de repaso de flashcards por contexto.
 - `services/materialGeneratorService.js`: material simulado por tema/subtema/contenido pegado y claves `estudiosProGeneratedMaterials`, `estudiosProTopicSummaries`, `estudiosProTopicFlashcards`, `estudiosProTopicQuizzes`.
+- `services/plannerService.js`: planificador local con clave `estudiosProPlanner`.
 - `services/visualResourcesService.js`: recursos visuales simulados en `estudiosProVisualResources`.
 - `services/courseService.js`: cursos personalizados y simulacros.
 - `services/flashcardService.js`: flashcards simuladas.
@@ -133,6 +143,39 @@ La clave de almacenamiento del MVP es `estudiosProMvpStateV3`.
 La memoria avanzada de errores usa `estudiosProErrorMemory`.
 
 Los resultados de repaso de flashcards usan `estudiosProFlashcardReviews`.
+
+El planificador usa `estudiosProPlanner` para eventos, planes automáticos, reflexión y estadísticas.
+
+## Planificador de Estudio Adaptativo
+
+El módulo se abre desde el dashboard principal con `Planificador`.
+
+Permite:
+
+- Crear eventos manuales de estudio, repaso, práctica, simulacro, ocio, ejercicio, examen o personal.
+- Generar planes automáticos con fecha de examen, nivel, tiempo diario, días por semana y objetivo.
+- Crear planes bajo demanda: hoy, semana, asignatura, hasta examen, express, programado o periodo especial.
+- Subir calendario foto/PDF como referencia pendiente de IA real y crear eventos manuales desde esa referencia.
+- Aplicar principios de práctica de recuperación, espaciado, intercalación y metacognición.
+- Completar sesiones con reflexión: qué entendí, qué debo repasar y dificultad percibida.
+- Añadir repasos extra automáticamente cuando una sesión se marca como difícil.
+- Ver estadísticas de cumplimiento, tiempo dedicado y distribución por tipo.
+
+Base educativa simulada:
+
+- Práctica de recuperación: recordar activamente mediante flashcards, preguntas y simulacros.
+- Espaciado: distribuir repasos en varios días antes del examen.
+- Intercalación: alternar temas o bloques para evitar estudio rígido.
+- Metacognición: completar una reflexión breve al terminar.
+- Hábitos saludables: incluir descanso y ejercicio cuando el alumno lo pida.
+
+También se integra con:
+
+- Chat: una respuesta puede añadirse al calendario.
+- Chat con imagen: una foto se guarda solo como metadato para futura IA visual.
+- Material visual pendiente: fotos, calendarios y PDFs se pueden eliminar, asociar a tema o convertir en evento/repaso manual.
+- Conceptos difíciles: permite programar repasos.
+- Flashcards y simulacros: pueden añadirse al calendario desde modo foco.
 
 El material generado por tema, subtema o contenido pegado usa claves separadas:
 

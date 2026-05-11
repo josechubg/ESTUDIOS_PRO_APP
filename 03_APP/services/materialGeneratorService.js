@@ -64,8 +64,75 @@ function buildConcepts(focus, difficulty) {
   ];
 }
 
+function materialTypeLabel(type) {
+  const labels = {
+    resumen: "Resumen",
+    flashcards: "Flashcards",
+    simulacro: "Simulacro",
+    conceptos_clave: "Conceptos clave",
+    errores_frecuentes: "Errores frecuentes",
+    pack_completo: "Pack completo",
+    todo: "Pack completo",
+  };
+  return labels[type] || type;
+}
+
+function shouldBuild(type, part) {
+  const normalized = type === "todo" ? "pack_completo" : type;
+  if (normalized === "pack_completo") return true;
+  return normalized === part;
+}
+
+function studentProfile(studentId) {
+  const profiles = {
+    juan: {
+      label: "Bachillerato / PAU",
+      style: "orientado a examen del colegio y PAU Región de Murcia",
+      activity: "practica con enunciados tipo examen y justificación breve",
+    },
+    carlota: {
+      label: "Medicina UCV",
+      style: "tipo test avanzado, precisión conceptual y distractores difíciles",
+      activity: "test con trampas conceptuales y revisión de relaciones clínicas",
+    },
+    gonzalo: {
+      label: "ESO",
+      style: "claro, guiado y visual, con pasos cortos",
+      activity: "ejercicios progresivos con pistas y comprobación final",
+    },
+  };
+  return profiles[studentId] || profiles.juan;
+}
+
+function visualSupportFor(focus, area, sourceType, materialType) {
+  const text = `${focus} ${area}`.toLowerCase();
+  if (/(di[eé]drico|dibujo|geometr|anatom|metabol|ciclo|plano|recta|traza|mapa|esquema)/i.test(text)) {
+    return {
+      visualSupportLevel: "required",
+      visualSupportStatus: "not_requested",
+      visualRecommendation: "Imagen imprescindible",
+      visualReason: "Este concepto se entiende mejor con un dibujo.",
+    };
+  }
+  if (["uploaded_files", "pasted_content"].includes(sourceType) || ["conceptos_clave", "pack_completo", "todo"].includes(materialType)) {
+    return {
+      visualSupportLevel: "optional",
+      visualSupportStatus: "not_requested",
+      visualRecommendation: "Imagen opcional",
+      visualReason: "Puede reforzarse con un esquema si el alumno lo pide.",
+    };
+  }
+  return {
+    visualSupportLevel: "none",
+    visualSupportStatus: "skipped",
+    visualRecommendation: "Imagen no necesaria",
+    visualReason: "El contenido puede estudiarse con texto breve.",
+  };
+}
+
 function buildSummary(config) {
   const focus = config.sourceType === "subtopic" ? config.subtopic : config.topic || config.area;
+  const profile = studentProfile(config.context.studentId);
   const sourceText =
     config.sourceType === "pasted_content"
       ? "Material simulado a partir del contenido pegado. Solo se usa una vista previa local, sin analisis real."
@@ -78,7 +145,7 @@ function buildSummary(config) {
     ...config.context,
     title: `Resumen de ${baseTitle(config)}`,
     sourceUsed: sourceText,
-    explanation: `Repaso simulado y estructurado sobre ${focus}. Esta version no usa IA real, pero deja preparada la forma del material futuro.`,
+    explanation: `Repaso simulado sobre ${focus}, adaptado a ${profile.label}: ${profile.style}.`,
     keyConcepts: buildConcepts(focus, config.difficulty),
     outline: [
       "1. Idea principal",
@@ -91,7 +158,7 @@ function buildSummary(config) {
       "Responder sin justificar",
       "No comprobar el resultado con el enunciado",
     ],
-    examTip: `En examen, empieza definiendo ${focus}, aplica un criterio claro y cierra con una comprobacion breve.`,
+    examTip: `Siguiente paso: ${profile.activity}.`,
     sourceType: config.sourceType,
     topic: config.topic,
     subtopic: config.subtopic,
@@ -102,6 +169,30 @@ function buildSummary(config) {
     sourceFileIds: config.sourceFileIds,
     createdAt: config.createdAt,
   };
+}
+
+function buildKeyConcepts(config) {
+  const focus = config.sourceType === "subtopic" ? config.subtopic : config.topic || config.area;
+  return buildConcepts(focus, config.difficulty).map((concept, index) => ({
+    id: createId("concept"),
+    title: `Concepto ${index + 1}`,
+    text: concept,
+    difficulty: config.difficulty,
+  }));
+}
+
+function buildExpectedErrors(config) {
+  const focus = config.sourceType === "subtopic" ? config.subtopic : config.topic || config.area;
+  return [
+    `Confundir ${focus} con un concepto cercano`,
+    "Responder sin justificar el criterio",
+    "No comprobar el resultado con el enunciado",
+  ].map((text, index) => ({
+    id: createId("expected-error"),
+    title: `Error probable ${index + 1}`,
+    text,
+    severity: index === 0 ? "alta" : "media",
+  }));
 }
 
 function buildFlashcards(config) {
@@ -232,6 +323,8 @@ function visibleSourceLabelFor(sourceType) {
 export function generateStudyMaterial({ sourceType, topic, subtopic, pastedContent, difficulty, materialType, context, area, sourceFileIds = [] }) {
   const createdAt = new Date().toISOString();
   const pastedContentPreview = String(pastedContent || "").trim().slice(0, 240);
+  const focus = sourceType === "subtopic" ? subtopic : topic || area;
+  const visual = visualSupportFor(focus, area, sourceType, materialType);
   const normalized = {
     id: createId("material"),
     ...context,
@@ -241,6 +334,8 @@ export function generateStudyMaterial({ sourceType, topic, subtopic, pastedConte
     pastedContentPreview,
     difficulty,
     materialType,
+    tipoMaterial: materialType,
+    materialTypeLabel: materialTypeLabel(materialType),
     createdAt,
     origin: sourceOrigin(sourceType),
     sourceBasis: sourceBasisFor(sourceType),
@@ -248,18 +343,25 @@ export function generateStudyMaterial({ sourceType, topic, subtopic, pastedConte
     sourceFileIds,
     area,
     context,
+    ...visual,
   };
 
   return {
     base: normalized,
-    summary: ["resumen", "todo"].includes(materialType) ? buildSummary(normalized) : null,
-    flashcards: ["flashcards", "todo"].includes(materialType) ? buildFlashcards(normalized) : [],
-    quiz: ["simulacro", "todo"].includes(materialType) ? buildQuiz(normalized) : null,
+    summary: shouldBuild(materialType, "resumen") ? buildSummary(normalized) : null,
+    flashcards: shouldBuild(materialType, "flashcards") ? buildFlashcards(normalized) : [],
+    quiz: shouldBuild(materialType, "simulacro") ? buildQuiz(normalized) : null,
+    keyConcepts: shouldBuild(materialType, "conceptos_clave") ? buildKeyConcepts(normalized) : [],
+    expectedErrors: shouldBuild(materialType, "errores_frecuentes") ? buildExpectedErrors(normalized) : [],
   };
 }
 
 export function saveGeneratedMaterial(material) {
-  writeList(GENERATED_MATERIALS_KEY, [material.base, ...readList(GENERATED_MATERIALS_KEY)]);
+  const historyRecord = {
+    ...material.base,
+    printableMaterial: material,
+  };
+  writeList(GENERATED_MATERIALS_KEY, [historyRecord, ...readList(GENERATED_MATERIALS_KEY)]);
   if (material.summary) writeList(TOPIC_SUMMARIES_KEY, [material.summary, ...readList(TOPIC_SUMMARIES_KEY)]);
   if (material.flashcards.length > 0) writeList(TOPIC_FLASHCARDS_KEY, [...material.flashcards, ...readList(TOPIC_FLASHCARDS_KEY)]);
   if (material.quiz) writeList(TOPIC_QUIZZES_KEY, [material.quiz, ...readList(TOPIC_QUIZZES_KEY)]);
@@ -267,4 +369,12 @@ export function saveGeneratedMaterial(material) {
 
 export function getGeneratedMaterialsByContext(context) {
   return readList(GENERATED_MATERIALS_KEY).filter((item) => sameContext(item, context));
+}
+
+export function getAllGeneratedMaterials() {
+  return readList(GENERATED_MATERIALS_KEY);
+}
+
+export function deleteGeneratedMaterial(materialId) {
+  writeList(GENERATED_MATERIALS_KEY, readList(GENERATED_MATERIALS_KEY).filter((item) => item.id !== materialId));
 }

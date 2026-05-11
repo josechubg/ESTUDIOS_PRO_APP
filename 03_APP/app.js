@@ -27,9 +27,12 @@ import {
   addFilesForContext,
   deleteFileMetadata,
   getFilesForContext,
+  loadFileMetadata,
 } from "./services/fileStorageService.js";
 import {
+  deleteGeneratedMaterial,
   generateStudyMaterial,
+  getAllGeneratedMaterials,
   getGeneratedMaterialsByContext,
   saveGeneratedMaterial,
 } from "./services/materialGeneratorService.js";
@@ -38,6 +41,40 @@ import {
   getVisualResourcesByContext,
   saveVisualResource,
 } from "./services/visualResourcesService.js";
+import {
+  addDifficultConcept,
+  deleteDifficultConcept,
+  getAllDifficultConcepts,
+  getDifficultConceptsByContext,
+  markDifficultConceptReviewed,
+} from "./services/difficultConceptService.js";
+import {
+  addPlannerEvent,
+  completePlannerEvent,
+  deletePlannerEvent,
+  generateAutomaticPlan,
+  getEventsByContext as getPlannerEventsByContext,
+  getPlannerStats,
+  movePlannerEvent,
+  saveGeneratedPlan,
+  updatePlannerEvent,
+} from "./services/plannerService.js";
+import {
+  addCalendarImport,
+  addChatAttachment,
+  deleteCalendarImport,
+  deleteChatAttachment,
+  getAllCalendarImports,
+  getAllChatAttachments,
+  getCalendarImportsByContext,
+  getChatAttachmentsByContext,
+  updateChatAttachment,
+} from "./services/visualPendingService.js";
+import {
+  getInboxItemState,
+  setInboxItemStatus,
+  updateInboxItemState,
+} from "./services/materialInboxService.js";
 import {
   ensureValidContext,
   getBlocksForSubject,
@@ -348,6 +385,8 @@ const elements = {
   materialDifficulty: document.querySelector("#material-difficulty"),
   materialType: document.querySelector("#material-type"),
   materialGeneratorResult: document.querySelector("#material-generator-result"),
+  materialHistoryFilter: document.querySelector("#material-history-filter"),
+  materialHistoryList: document.querySelector("#material-history-list"),
   errorForm: document.querySelector("#error-form"),
   errorTitle: document.querySelector("#error-title"),
   errorDescription: document.querySelector("#error-description"),
@@ -381,6 +420,8 @@ const elements = {
   focusPrintSelected: document.querySelector("#focus-print-selected"),
   focusPrintAll: document.querySelector("#focus-print-all"),
   focusPrintQa: document.querySelector("#focus-print-qa"),
+  focusScheduleFlashcards: document.querySelector("#focus-schedule-flashcards"),
+  focusScheduleMock: document.querySelector("#focus-schedule-mock"),
   flashcardReviewPanel: document.querySelector("#flashcard-review-panel"),
   reviewCounter: document.querySelector("#review-counter"),
   reviewProgressBar: document.querySelector("#review-progress-bar"),
@@ -400,6 +441,88 @@ const elements = {
   focusChatMessages: document.querySelector("#focus-chat-messages"),
   focusChatForm: document.querySelector("#focus-chat-form"),
   focusChatInput: document.querySelector("#focus-chat-input"),
+  quickChatChips: document.querySelector(".quick-chat-chips"),
+  chatPhotoToggle: document.querySelector("#chat-photo-toggle"),
+  chatPhotoOptions: document.querySelector("#chat-photo-options"),
+  chatCameraTrigger: document.querySelector("#chat-camera-trigger"),
+  chatGalleryTrigger: document.querySelector("#chat-gallery-trigger"),
+  chatCameraInput: document.querySelector("#chatCameraInput"),
+  chatGalleryInput: document.querySelector("#chatGalleryInput"),
+  chatAttachmentStatus: document.querySelector("#chat-attachment-status"),
+  historyShortcut: document.querySelector("[data-open-history-shortcut]"),
+  expandChat: document.querySelector("#expand-chat"),
+  collapseChat: document.querySelector("#collapse-chat"),
+  showDifficultConcepts: document.querySelector("#show-difficult-concepts"),
+  difficultConceptsSection: document.querySelector("#difficult-concepts-section"),
+  difficultConceptsList: document.querySelector("#difficult-concepts-list"),
+  conceptsCreateFlashcards: document.querySelector("#concepts-create-flashcards"),
+  conceptsCreateMock: document.querySelector("#concepts-create-mock"),
+  conceptsScheduleReview: document.querySelector("#concepts-schedule-review"),
+  showPlanner: document.querySelector("#show-planner"),
+  showPlanningAssistant: document.querySelector("#show-planning-assistant"),
+  showMaterialInbox: document.querySelector("#show-material-inbox"),
+  materialInboxSection: document.querySelector("#material-inbox-section"),
+  inboxTypeFilter: document.querySelector("#inbox-type-filter"),
+  inboxSubjectFilter: document.querySelector("#inbox-subject-filter"),
+  inboxBlockFilter: document.querySelector("#inbox-block-filter"),
+  inboxDateFilter: document.querySelector("#inbox-date-filter"),
+  materialInboxList: document.querySelector("#material-inbox-list"),
+  materialInboxDetail: document.querySelector("#material-inbox-detail"),
+  showVisualPending: document.querySelector("#show-visual-pending"),
+  visualPendingSection: document.querySelector("#visual-pending-section"),
+  visualPendingList: document.querySelector("#visual-pending-list"),
+  planningAssistantSection: document.querySelector("#planning-assistant-section"),
+  upcomingEventsList: document.querySelector("#upcoming-events-list"),
+  quickPlanForm: document.querySelector("#quick-plan-form"),
+  quickPlanKind: document.querySelector("#quick-plan-kind"),
+  quickPlanTime: document.querySelector("#quick-plan-time"),
+  quickPlanPriority: document.querySelector("#quick-plan-priority"),
+  quickPlanExtra: document.querySelector("#quick-plan-extra"),
+  quickPlanTimeLabel: document.querySelector("#quick-plan-time-label"),
+  quickPlanPriorityLabel: document.querySelector("#quick-plan-priority-label"),
+  quickPlanExtraLabel: document.querySelector("#quick-plan-extra-label"),
+  quickPlanResult: document.querySelector("#quick-plan-result"),
+  plannerSection: document.querySelector("#planner-section"),
+  plannerCalendar: document.querySelector("#planner-calendar"),
+  plannerPeriodSummary: document.querySelector("#planner-period-summary"),
+  plannerPeriodEventList: document.querySelector("#planner-period-event-list"),
+  plannerCurrentLabel: document.querySelector("#planner-current-label"),
+  plannerPrev: document.querySelector("#planner-prev"),
+  plannerToday: document.querySelector("#planner-today"),
+  plannerNext: document.querySelector("#planner-next"),
+  plannerEventForm: document.querySelector("#planner-event-form"),
+  plannerEventId: document.querySelector("#planner-event-id"),
+  plannerEventType: document.querySelector("#planner-event-type"),
+  plannerEventTitle: document.querySelector("#planner-event-title"),
+  plannerEventDescription: document.querySelector("#planner-event-description"),
+  plannerEventDate: document.querySelector("#planner-event-date"),
+  plannerEventStartTime: document.querySelector("#planner-event-start-time"),
+  plannerEventEndDate: document.querySelector("#planner-event-end-date"),
+  plannerEventEndTime: document.querySelector("#planner-event-end-time"),
+  plannerEventDuration: document.querySelector("#planner-event-duration"),
+  plannerEventPriority: document.querySelector("#planner-event-priority"),
+  plannerPlanForm: document.querySelector("#planner-plan-form"),
+  plannerPlanSubject: document.querySelector("#planner-plan-subject"),
+  plannerPlanTopic: document.querySelector("#planner-plan-topic"),
+  plannerExamDate: document.querySelector("#planner-exam-date"),
+  plannerInitialLevel: document.querySelector("#planner-initial-level"),
+  plannerDailyTime: document.querySelector("#planner-daily-time"),
+  plannerDaysWeek: document.querySelector("#planner-days-week"),
+  plannerGoal: document.querySelector("#planner-goal"),
+  plannerIncludeBreaks: document.querySelector("#planner-include-breaks"),
+  plannerIncludeExercise: document.querySelector("#planner-include-exercise"),
+  plannerEventList: document.querySelector("#planner-period-event-list"),
+  plannerStatsContent: document.querySelector("#planner-stats-content"),
+  plannerReflectionModal: document.querySelector("#planner-reflection-modal"),
+  plannerReflectionClose: document.querySelector("#planner-reflection-close"),
+  plannerReflectionForm: document.querySelector("#planner-reflection-form"),
+  plannerReflectionEventId: document.querySelector("#planner-reflection-event-id"),
+  plannerUnderstood: document.querySelector("#planner-understood"),
+  plannerReviewNeeded: document.querySelector("#planner-review-needed"),
+  plannerDifficulty: document.querySelector("#planner-difficulty"),
+  calendarImportInput: document.querySelector("#calendar-import-input"),
+  calendarManualEvent: document.querySelector("#calendar-manual-event"),
+  calendarImportStatus: document.querySelector("#calendar-import-status"),
   toolBackButtons: document.querySelectorAll("[data-back-main]"),
   helpModal: document.querySelector("#help-modal"),
   helpModalTitle: document.querySelector("#help-modal-title"),
@@ -460,6 +583,11 @@ function loadState() {
 let state = loadState();
 state.focus = null;
 let activeView = "main";
+let chatExpanded = false;
+let plannerView = "month";
+let plannerDate = new Date();
+let pendingQuickPlan = null;
+let selectedInboxItemKey = "";
 
 function saveState() {
   saveAppState(state);
@@ -490,6 +618,11 @@ function toolViews() {
     errors: document.querySelector("#errors-section"),
     files: document.querySelector("#files-section"),
     adaptive: elements.trainingSection,
+    concepts: elements.difficultConceptsSection,
+    planner: elements.plannerSection,
+    planningAssistant: elements.planningAssistantSection,
+    materialInbox: elements.materialInboxSection,
+    visualPending: elements.visualPendingSection,
   };
 }
 
@@ -499,6 +632,9 @@ function applyActiveView() {
   elements.setupScreen.classList.toggle("tool-open", activeView !== "main");
   elements.setupCard.dataset.activeView = activeView;
   elements.setupCard.classList.toggle("tool-open", activeView !== "main");
+  elements.setupCard.classList.toggle("chat-expanded", chatExpanded && activeView === "main");
+  elements.expandChat.classList.toggle("hidden", chatExpanded);
+  elements.collapseChat.classList.toggle("hidden", !chatExpanded);
   if (views[activeView]) views[activeView].classList.remove("hidden");
 }
 
@@ -509,9 +645,16 @@ function closeToolScreens() {
 }
 
 function openToolScreen(viewName) {
+  chatExpanded = false;
   activeView = viewName;
   applyActiveView();
   elements.setupCard.scrollIntoView({ block: "start" });
+}
+
+function setChatExpanded(expanded) {
+  chatExpanded = expanded;
+  activeView = "main";
+  applyActiveView();
 }
 
 function activeAgentKey() {
@@ -620,7 +763,7 @@ function renderShell() {
   elements.agentStatus.textContent = agent.status;
   elements.welcomeTitle.textContent = agent.title;
   elements.welcomeCopy.textContent = `${agent.name} · ${context.courseName} · ${context.subjectName}${context.subblockName ? ` · ${context.subblockName}` : ""}`;
-  elements.chatTitle.textContent = agent.chatName;
+  elements.chatTitle.textContent = `${agent.name} · ${context.courseName} · ${context.subjectName}${context.subblockName ? ` · ${context.subblockName}` : ""}`;
   elements.metricProgress.textContent = `${agent.metrics.progress}%`;
   elements.metricReviews.textContent = String(agent.metrics.reviews);
   elements.metricErrors.textContent = String(getAllErrors().filter((error) => error.studentId === activeAgentKey()).length);
@@ -635,22 +778,22 @@ function renderMainStats() {
   const generatedCards = activeAgentState().flashcards.filter((card) => resourceBelongsToActiveContext(card, activeErrorContext()));
   const progress = Math.min(96, 35 + files.length * 8 + generatedCards.length * 4 + errors.filter((error) => error.status === "superado").length * 10);
   elements.mainStats.innerHTML = `
-    <article class="stat-card progress-stat">
+    <article class="stat-card ui-level-3 progress-stat">
       <span>Bloque</span>
       <strong>${progress}%</strong>
       <div class="progress-track"><i style="width:${progress}%"></i></div>
     </article>
-    <article class="stat-card">
+    <article class="stat-card ui-level-3">
       <span>Materiales</span>
       <strong>${files.length}</strong>
       <em>En este bloque</em>
     </article>
-    <article class="stat-card">
+    <article class="stat-card ui-level-3">
       <span>Errores pendientes</span>
       <strong>${errors.filter((error) => error.status !== "superado").length}</strong>
       <em>Para entrenar</em>
     </article>
-    <article class="stat-card">
+    <article class="stat-card ui-level-3">
       <span>Flashcards</span>
       <strong>${generatedCards.length}</strong>
       <em>Repaso activo</em>
@@ -733,7 +876,7 @@ function renderSubjectsAndBlocks() {
 
 function addItemCard(container, title, text) {
   const item = document.createElement("div");
-  item.className = "mini-card";
+  item.className = "mini-card ui-level-3";
   const strong = document.createElement("strong");
   const span = document.createElement("span");
   strong.textContent = title;
@@ -847,7 +990,7 @@ function renderVisualSupportBlock(visual, level, status) {
         : "";
 
   return `
-    <section class="visual-support visual-support-card" data-visual-level="${level}" data-visual-status="${status}">
+    <section class="visual-support visual-support-card ui-level-2" data-visual-level="${level}" data-visual-status="${status}">
       <div class="visual-support-head">
         <h3>Apoyo visual</h3>
         <span class="progress-pill">${level === "required" ? "Imprescindible" : "Opcional"}</span>
@@ -912,7 +1055,7 @@ function renderFiles() {
 
   files.forEach((file) => {
     const item = document.createElement("article");
-    item.className = "file-item";
+    item.className = "file-item ui-level-3";
     item.innerHTML = `
       <div>
         <strong></strong>
@@ -1012,7 +1155,7 @@ function renderPendingMobilePhotos() {
   elements.saveMobilePhotos.disabled = false;
   pendingMobilePhotos.forEach((photo, index) => {
     const item = document.createElement("article");
-    item.className = "pending-photo-item";
+    item.className = "pending-photo-item ui-level-3";
     item.innerHTML = `
       <div class="pending-photo-placeholder" aria-hidden="true">📷 Foto añadida</div>
       <div>
@@ -1094,32 +1237,314 @@ function renderChat() {
   const chat = activeAgentState().chat;
   elements.chatMessages.innerHTML = "";
   if (chat.length === 0) {
-    addMessageToDom(elements.chatMessages, activeAgent().chatName, `Hola. Soy una simulacion para ${activeArea()}. Pregunta algo o entra en modo foco.`, "agent");
+    addMessageToDom(elements.chatMessages, activeAgent().chatName, `Hola. Soy una simulacion para ${activeArea()}. Pregunta algo o entra en modo foco.`, "agent", null);
     return;
   }
-  chat.forEach((message) => addMessageToDom(elements.chatMessages, message.author, message.text, message.type));
+  chat.forEach((message) => addMessageToDom(elements.chatMessages, message.author, message.text, message.type, message));
 }
 
-function addMessageToDom(container, author, text, type) {
+function addMessageToDom(container, author, text, type, messageData = null) {
   const message = document.createElement("div");
   message.className = `message ${type}`;
+  if (messageData?.id) message.dataset.messageId = messageData.id;
   const strong = document.createElement("strong");
   const span = document.createElement("span");
   strong.textContent = author;
   span.textContent = text;
   message.append(strong, span);
+  if (type === "agent" && messageData?.id && container === elements.chatMessages) {
+    message.append(renderChatResponseActions(messageData.id));
+  }
   container.append(message);
+  if (type === "user" && messageData?.id && container === elements.chatMessages) {
+    const attachments = getChatAttachmentsByContext(activeVisualContext()).filter((item) => item.asociadoAMensajeChat === messageData.id);
+    attachments.forEach((attachment) => container.append(renderChatAttachmentCard(attachment)));
+  }
   container.scrollTop = container.scrollHeight;
 }
 
+function renderChatAttachmentCard(attachment) {
+  const card = document.createElement("article");
+  card.className = "chat-attachment-card ui-level-3";
+  card.dataset.chatAttachmentId = attachment.id;
+  const originLabel = attachment.origen === "camara_chat" ? "cámara del chat" : "galería del chat";
+  card.innerHTML = `
+    <div>
+      <span class="source-badge">Imagen adjuntada como referencia — pendiente de IA real</span>
+      <strong></strong>
+      <p></p>
+    </div>
+    <div class="chat-attachment-actions">
+      <button class="secondary-button" type="button" data-chat-attachment-action="archive">Archivar</button>
+      <button class="secondary-button" type="button" data-chat-attachment-action="doubt">Duda visual</button>
+      <button class="secondary-button" type="button" data-chat-attachment-action="topic">Asociar tema</button>
+      <button class="secondary-button" type="button" data-chat-attachment-action="event">Programar repaso</button>
+      <button class="secondary-button" type="button" data-chat-attachment-action="delete">Eliminar</button>
+    </div>
+  `;
+  card.querySelector("strong").textContent = attachment.nombreArchivo;
+  card.querySelector("p").textContent = `${originLabel} · ${attachment.tipoArchivo} · ${formatFileSize(attachment.tamano || 0)}${attachment.temaAsociado ? ` · tema: ${attachment.temaAsociado}` : ""}${attachment.dudaVisual ? " · duda visual" : ""}`;
+  return card;
+}
+
 function addChatMessage(author, text, type) {
-  activeAgentState().chat.push({ author, text, type });
+  const message = {
+    id: globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : `chat-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    author,
+    text,
+    type,
+    createdAt: new Date().toISOString(),
+  };
+  activeAgentState().chat.push(message);
   saveState();
-  addMessageToDom(elements.chatMessages, author, text, type);
+  addMessageToDom(elements.chatMessages, author, text, type, message);
+  return message;
 }
 
 function addAgentMessage(text) {
   addChatMessage(activeAgent().chatName, text, "agent");
+}
+
+function renderChatResponseActions(messageId) {
+  const actions = document.createElement("div");
+  actions.className = "chat-response-actions";
+  actions.innerHTML = `
+    <button type="button" data-chat-response-action="save">Guardar respuesta</button>
+    <button type="button" data-chat-response-action="inbox">Enviar a bandeja</button>
+    <button type="button" data-chat-response-action="summary">Crear resumen</button>
+    <button type="button" data-chat-response-action="flashcards">Crear flashcards</button>
+    <button type="button" data-chat-response-action="questions">Crear preguntas</button>
+    <button type="button" data-chat-response-action="calendar">Añadir al calendario</button>
+    <button type="button" data-chat-response-action="difficult">Marcar como concepto difícil</button>
+    <button type="button" data-chat-response-action="visual">Generar apoyo visual</button>
+  `;
+  actions.querySelectorAll("button").forEach((button) => {
+    button.dataset.messageId = messageId;
+  });
+  return actions;
+}
+
+function findChatMessage(messageId) {
+  return activeAgentState().chat.find((message) => message.id === messageId);
+}
+
+function chatMaterialBase(message, materialType, label) {
+  const context = activeErrorContext();
+  const visual = visualSupportLevelForArea(activeArea());
+  const createdAt = new Date().toISOString();
+  return {
+    id: crypto.randomUUID ? crypto.randomUUID() : `chat-material-${Date.now()}`,
+    ...context,
+    sourceType: "chat_response",
+    topic: activeArea(),
+    subtopic: activeAgentState().block || "",
+    difficulty: "medio",
+    materialType,
+    tipoMaterial: materialType,
+    materialTypeLabel: label,
+    createdAt,
+    origin: "generated_from_chat_response",
+    source: "chat_ia_simulado",
+    sourceBasis: "simulated",
+    sourceLabel: "💬 Chat IA simulado",
+    sourceMessageId: message.id,
+    sourceText: message.text,
+    area: activeArea(),
+    context,
+    visualSupportLevel: visual,
+    visualSupportStatus: "not_requested",
+    visualRecommendation: visual === "required" ? "Imagen imprescindible" : visual === "optional" ? "Imagen opcional" : "Imagen no necesaria",
+    visualReason: visual === "none" ? "La respuesta puede estudiarse sin apoyo visual." : "La respuesta puede reforzarse con un esquema en una futura IA visual.",
+  };
+}
+
+function materialFromChatResponse(message, materialType = "respuesta_chat") {
+  const base = chatMaterialBase(message, materialType, materialTypeName(materialType));
+  const summary =
+    materialType === "resumen"
+      ? {
+          id: `${base.id}-summary`,
+          ...base.context,
+          title: `Resumen de respuesta · ${activeArea()}`,
+          sourceUsed: "Respuesta del chat IA simulado.",
+          explanation: `Resumen simulado: ${message.text.slice(0, 220)}${message.text.length > 220 ? "..." : ""}`,
+          keyConcepts: [`Idea central de ${activeArea()}`, "Paso que hay que justificar", "Comprobación final"],
+          outline: ["1. Idea clave", "2. Aplicación", "3. Error que conviene evitar"],
+          expectedErrors: ["Quedarse en una definición sin ejemplo", "No conectar con el bloque activo"],
+          examTip: studentExamTip(),
+          sourceLabel: base.sourceLabel,
+          createdAt: base.createdAt,
+        }
+      : null;
+
+  return {
+    base,
+    summary,
+    flashcards: materialType === "flashcards" ? buildChatFlashcards(message) : [],
+    quiz: materialType === "simulacro" ? buildChatQuiz(message) : null,
+    keyConcepts: [],
+    expectedErrors: [],
+  };
+}
+
+function studentExamTip() {
+  const tips = {
+    juan: "Practica una respuesta breve, justificada y orientada a PAU/colegio.",
+    carlota: "Busca el matiz que diferencia la opción correcta del distractor.",
+    gonzalo: "Explica el concepto con tus palabras y comprueba con un ejemplo.",
+  };
+  return tips[activeAgentKey()] || tips.juan;
+}
+
+function buildChatFlashcards(message) {
+  const context = activeErrorContext();
+  const base = [
+    {
+      question: `¿Cuál es la idea principal de esta explicación sobre ${activeArea()}?`,
+      answer: message.text.slice(0, 180) || "Repasa la explicación del chat.",
+      explanation: "Flashcard simulada creada desde una respuesta del profesor IA.",
+    },
+    {
+      question: `¿Qué deberías comprobar al estudiar ${activeArea()}?`,
+      answer: "Que puedes explicarlo con tus palabras y aplicarlo sin repetir el error.",
+      explanation: "Sirve para transformar la respuesta en repaso activo.",
+    },
+  ];
+  return base.map((card, index) => ({
+    id: crypto.randomUUID ? crypto.randomUUID() : `chat-flashcard-${Date.now()}-${index}`,
+    ...context,
+    ...card,
+    front: card.question,
+    back: card.answer,
+    area: activeArea(),
+    context,
+    errorType: "concepto dificil",
+    difficulty: "media",
+    source: "chat-response",
+    sourceType: "chat_response",
+    sourceLabel: "💬 Chat IA simulado",
+    origin: "generated_from_chat_response",
+    sourceMessageId: message.id,
+    createdAt: new Date().toISOString(),
+  }));
+}
+
+function buildChatQuiz(message) {
+  const context = activeErrorContext();
+  const isCarlota = activeAgentKey() === "carlota";
+  const options = isCarlota
+    ? ["La opción que mantiene precisión conceptual.", "Un distractor parcialmente correcto.", "Una generalización excesiva.", "Una afirmación fuera de contexto."]
+    : ["Explicarlo y justificarlo.", "Responder de memoria.", "Omitir el ejemplo.", "Ignorar el enunciado."];
+  return {
+    id: crypto.randomUUID ? crypto.randomUUID() : `chat-quiz-${Date.now()}`,
+    ...context,
+    title: `Preguntas desde chat · ${activeArea()}`,
+    description: `Preguntas simuladas generadas desde una respuesta del profesor IA para ${activeAgent().name}.`,
+    area: activeArea(),
+    context,
+    questions: [
+      {
+        id: crypto.randomUUID ? crypto.randomUUID() : `chat-question-${Date.now()}`,
+        prompt: activeAgentKey() === "gonzalo" ? `¿Cómo explicarías esto con tus palabras?` : `¿Qué idea sostiene mejor la respuesta anterior?`,
+        statement: activeAgentKey() === "gonzalo" ? `¿Cómo explicarías esto con tus palabras?` : `¿Qué idea sostiene mejor la respuesta anterior?`,
+        options,
+        correctAnswer: options[0],
+        explanation: message.text.slice(0, 220) || "Pregunta simulada desde chat.",
+        sourceMessageId: message.id,
+        difficulty: "media",
+      },
+    ],
+    source: "chat-response",
+    createdAt: new Date().toISOString(),
+  };
+}
+
+function handleChatResponseAction(action, messageId) {
+  const message = findChatMessage(messageId);
+  if (!message) return;
+  const labels = {
+    save: "Respuesta guardada en historial.",
+    inbox: "Respuesta enviada a Bandeja de material.",
+    summary: "Resumen simulado creado desde la respuesta.",
+    flashcards: "Flashcards creadas desde la respuesta.",
+    questions: "Preguntas creadas desde la respuesta.",
+    calendar: "Respuesta añadida al calendario como repaso.",
+    difficult: "Concepto difícil guardado.",
+    visual: "Apoyo visual recomendado en modo simulación.",
+  };
+
+  if (action === "save") {
+    saveGeneratedMaterial(materialFromChatResponse(message, "respuesta_chat"));
+  }
+  if (action === "inbox") {
+    const material = materialFromChatResponse(message, "respuesta_chat");
+    saveGeneratedMaterial(material);
+    updateInboxItemState(inboxSourceKey("generated-material", material.base.id), { status: "pendiente_clasificar" });
+    renderMaterialInbox();
+  }
+  if (action === "summary") {
+    saveGeneratedMaterial(materialFromChatResponse(message, "resumen"));
+  }
+  if (action === "flashcards") {
+    const material = materialFromChatResponse(message, "flashcards");
+    saveGeneratedMaterial(material);
+    activeAgentState().flashcards = [...material.flashcards.map((card, index) => normalizeFlashcard(card, index, "chat")), ...activeAgentState().flashcards].slice(0, 60);
+    material.flashcards.forEach((card) => selectedFlashcards.add(card.id));
+    saveState();
+  }
+  if (action === "questions") {
+    const material = materialFromChatResponse(message, "simulacro");
+    saveGeneratedMaterial(material);
+    if (material.quiz) activeAgentState().mocks.unshift(material.quiz);
+    saveState();
+  }
+  if (action === "difficult") {
+    addDifficultConcept(
+      {
+        title: `Concepto difícil · ${activeArea()}`,
+        description: message.text.slice(0, 260),
+        sourceText: message.text,
+        sourceMessageId: message.id,
+      },
+      activeErrorContext()
+    );
+    renderDifficultConcepts();
+  }
+  if (action === "calendar") {
+    schedulePlannerEvent({
+      tipo: "repaso",
+      titulo: `Repaso desde chat · ${activeArea()}`,
+      descripcion: message.text.slice(0, 260),
+      minutesFromNow: 60,
+    });
+  }
+  if (action === "visual") {
+    const visual = createSimulatedVisualResource({
+      context: activeErrorContext(),
+      topic: activeArea(),
+      explanationId: `chat-${message.id}`,
+    });
+    saveVisualResource({
+      ...visual,
+      status: visualSupportLevelForArea(activeArea()) === "none" ? "Imagen no necesaria" : "Apoyo visual recomendado",
+    });
+    addAgentMessage("Cuando conectemos IA visual, aquí se generará o buscará una imagen explicativa.");
+  }
+  renderMaterialHistory();
+  renderMainStats();
+  showChatActionFeedback(messageId, labels[action] || "Acción realizada.");
+}
+
+function showChatActionFeedback(messageId, text) {
+  const message = Array.from(elements.chatMessages.querySelectorAll("[data-message-id]")).find((item) => item.dataset.messageId === messageId);
+  if (!message) return;
+  let feedback = message.querySelector(".chat-action-feedback");
+  if (!feedback) {
+    feedback = document.createElement("span");
+    feedback.className = "chat-action-feedback";
+    message.append(feedback);
+  }
+  feedback.textContent = text;
 }
 
 function renderErrors() {
@@ -1129,7 +1554,7 @@ function renderErrors() {
 
   if (list.length === 0) {
     const empty = document.createElement("li");
-    empty.className = "error-card";
+    empty.className = "error-card ui-level-3";
     empty.textContent = "Todavia no hay errores guardados para este bloque.";
     elements.errorsList.append(empty);
     return;
@@ -1137,7 +1562,7 @@ function renderErrors() {
 
   list.forEach((error) => {
     const item = document.createElement("li");
-    item.className = "error-card";
+    item.className = "error-card ui-level-3";
     item.innerHTML = `
       <div>
         <strong></strong>
@@ -1151,6 +1576,7 @@ function renderErrors() {
       <div class="error-actions">
         <button class="secondary-button" type="button" data-error-action="review">Repasado</button>
         <button class="secondary-button" type="button" data-error-action="solved">Superado</button>
+        <button class="secondary-button" type="button" data-error-action="schedule">Programar repaso</button>
         <button class="secondary-button" type="button" data-error-action="delete">Eliminar</button>
       </div>
     `;
@@ -1168,19 +1594,20 @@ function renderErrors() {
 
 function renderTraining() {
   const plan = generateSimulatedTrainingPlan(activeErrorContext());
+  const concepts = getDifficultConceptsByContext(activeErrorContext());
   elements.trainingContent.innerHTML = "";
 
   const summary = document.createElement("div");
   summary.className = "training-grid";
   summary.innerHTML = `
-    <article class="mini-card"><strong>Errores pendientes</strong><span>${plan.pending.length}</span></article>
-    <article class="mini-card"><strong>Errores en repaso</strong><span>${plan.reviewing.length}</span></article>
-    <article class="mini-card"><strong>Tipo mas frecuente</strong><span>${plan.dominantErrorType}</span></article>
-    <article class="mini-card"><strong>Dificultad predominante</strong><span>${plan.dominantDifficulty}</span></article>
+    <article class="mini-card ui-level-3"><strong>Errores pendientes</strong><span>${plan.pending.length}</span></article>
+    <article class="mini-card ui-level-3"><strong>Errores en repaso</strong><span>${plan.reviewing.length}</span></article>
+    <article class="mini-card ui-level-3"><strong>Tipo mas frecuente</strong><span>${plan.dominantErrorType}</span></article>
+    <article class="mini-card ui-level-3"><strong>Dificultad predominante</strong><span>${plan.dominantDifficulty}</span></article>
   `;
 
   const recommendation = document.createElement("article");
-  recommendation.className = "course-summary";
+  recommendation.className = "course-summary ui-level-2";
   recommendation.innerHTML = "<strong>Recomendacion simulada</strong><p></p><ul></ul>";
   recommendation.querySelector("p").textContent = plan.mainRecommendation;
   const list = recommendation.querySelector("ul");
@@ -1189,8 +1616,1069 @@ function renderTraining() {
     item.textContent = action;
     list.append(item);
   });
+  if (concepts.length > 0) {
+    const item = document.createElement("li");
+    item.textContent = `Repasar ${concepts.length} concepto(s) difícil(es) guardado(s) desde el chat.`;
+    list.append(item);
+  }
 
   elements.trainingContent.append(summary, recommendation);
+}
+
+function renderDifficultConcepts() {
+  const concepts = getDifficultConceptsByContext(activeErrorContext());
+  elements.difficultConceptsList.innerHTML = "";
+  if (concepts.length === 0) {
+    addItemCard(elements.difficultConceptsList, "Sin conceptos difíciles", "Marca una respuesta del chat para guardarla aquí.");
+    return;
+  }
+  concepts.forEach((concept) => {
+    const item = document.createElement("article");
+    item.className = "concept-card ui-level-3";
+    item.innerHTML = `
+      <div>
+        <strong></strong>
+        <p></p>
+        <div class="file-meta">
+          <span class="status-pill"></span>
+          <span></span>
+        </div>
+      </div>
+      <div class="concept-actions">
+        <button class="secondary-button" type="button" data-concept-action="review">Repasado</button>
+        <button class="secondary-button" type="button" data-concept-action="flashcards">Flashcards</button>
+        <button class="secondary-button" type="button" data-concept-action="questions">Preguntas</button>
+        <button class="secondary-button" type="button" data-concept-action="delete">Eliminar</button>
+      </div>
+    `;
+    item.querySelector("strong").textContent = concept.title;
+    item.querySelector("p").textContent = concept.description || concept.sourceText;
+    item.querySelector(".status-pill").textContent = concept.status || "pendiente";
+    item.querySelector(".file-meta span:nth-child(2)").textContent = `${new Date(concept.createdAt).toLocaleDateString("es-ES")} · repasos: ${concept.reviewCount || 0}`;
+    item.querySelectorAll("[data-concept-action]").forEach((button) => {
+      button.dataset.conceptId = concept.id;
+    });
+    elements.difficultConceptsList.append(item);
+  });
+}
+
+function flashcardFromDifficultConcept(concept, index = 0) {
+  const question = `¿Cómo explicarías este concepto difícil: ${concept.title}?`;
+  const answer = concept.description || concept.sourceText || "Repasa el concepto guardado desde el chat.";
+  return normalizeFlashcard(
+    {
+      id: `concept-flashcard-${concept.id}-${index}`,
+      question,
+      answer,
+      explanation: "Flashcard simulada creada desde un concepto difícil guardado.",
+      context: activeErrorContext(),
+      area: activeArea(),
+      errorType: "concepto dificil",
+      difficulty: "media",
+      source: "difficult-concept",
+      sourceLabel: "📌 Concepto difícil",
+      sourceErrorId: concept.id,
+    },
+    index,
+    "concepto-dificil"
+  );
+}
+
+function createFlashcardsFromDifficultConcepts(conceptIds = []) {
+  const concepts = getDifficultConceptsByContext(activeErrorContext()).filter((concept) => conceptIds.length === 0 || conceptIds.includes(concept.id));
+  if (concepts.length === 0) {
+    addAgentMessage("Todavía no hay conceptos difíciles para convertir en flashcards.");
+    return;
+  }
+  const cards = concepts.map(flashcardFromDifficultConcept);
+  activeAgentState().flashcards = [...cards, ...activeAgentState().flashcards].slice(0, 60);
+  cards.forEach((card) => selectedFlashcards.add(card.id));
+  saveState();
+  render();
+  enterFocusMode("flashcards");
+}
+
+function createMockFromDifficultConcepts(conceptIds = []) {
+  const concepts = getDifficultConceptsByContext(activeErrorContext()).filter((concept) => conceptIds.length === 0 || conceptIds.includes(concept.id));
+  if (concepts.length === 0) {
+    addAgentMessage("Todavía no hay conceptos difíciles para crear preguntas.");
+    return;
+  }
+  const mock = {
+    id: crypto.randomUUID ? crypto.randomUUID() : `concept-mock-${Date.now()}`,
+    title: `Mini-simulacro desde conceptos difíciles · ${activeArea()}`,
+    description: `Simulacro con ${concepts.length} concepto(s) difícil(es) guardado(s) desde el chat.`,
+    area: activeArea(),
+    context: activeErrorContext(),
+    source: "difficult-concept",
+    createdAt: new Date().toISOString(),
+    questions: concepts.map((concept, index) => ({
+      id: `concept-question-${concept.id}-${index}`,
+      prompt: activeAgentKey() === "carlota" ? `Tipo test: ¿qué afirmación encaja mejor con ${concept.title}?` : `Explica y aplica: ${concept.title}`,
+      statement: activeAgentKey() === "carlota" ? `Tipo test: ¿qué afirmación encaja mejor con ${concept.title}?` : `Explica y aplica: ${concept.title}`,
+      options: ["La explicación correcta y contextualizada.", "Una respuesta de memoria sin justificar.", "Una idea relacionada pero incompleta.", "Una respuesta fuera del bloque."],
+      correctAnswer: "La explicación correcta y contextualizada.",
+      explanation: concept.description || concept.sourceText,
+      sourceConceptId: concept.id,
+      difficulty: "media",
+    })),
+  };
+  activeAgentState().mocks.unshift(mock);
+  saveState();
+  render();
+  enterFocusMode("mock");
+}
+
+function isoInput(date) {
+  const offset = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+}
+
+function activePlannerContext() {
+  const context = activeErrorContext();
+  return {
+    ...context,
+    blockName: activeAgentState().block || "",
+  };
+}
+
+function schedulePlannerEvent({ tipo = "repaso", titulo = "Repaso programado", descripcion = "", minutesFromNow = 60, duration = 30 }) {
+  const start = new Date(Date.now() + minutesFromNow * 60000);
+  const end = new Date(start.getTime() + duration * 60000);
+  addPlannerEvent(
+    {
+      tipo,
+      titulo,
+      descripcion,
+      fechaInicio: isoInput(start),
+      fechaFin: isoInput(end),
+      prioridad: tipo === "examen" ? "alta" : "media",
+    },
+    activePlannerContext()
+  );
+  renderPlanner();
+  renderUpcomingEvents();
+  addAgentMessage(`Añadido al planificador: ${titulo}.`);
+}
+
+function plannerRange() {
+  const base = new Date(plannerDate);
+  const start = new Date(base);
+  const end = new Date(base);
+  if (plannerView === "day") {
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
+  } else if (plannerView === "week") {
+    const day = (start.getDay() + 6) % 7;
+    start.setDate(start.getDate() - day);
+    start.setHours(0, 0, 0, 0);
+    end.setTime(start.getTime());
+    end.setDate(start.getDate() + 6);
+    end.setHours(23, 59, 59, 999);
+  } else {
+    start.setDate(1);
+    start.setHours(0, 0, 0, 0);
+    end.setMonth(start.getMonth() + 1, 0);
+    end.setHours(23, 59, 59, 999);
+  }
+  return { start, end };
+}
+
+function eventDateKey(event) {
+  return String(event.fechaInicio || "").slice(0, 10);
+}
+
+function startOfDay(date) {
+  const value = new Date(date);
+  value.setHours(0, 0, 0, 0);
+  return value;
+}
+
+function endOfDay(date) {
+  const value = new Date(date);
+  value.setHours(23, 59, 59, 999);
+  return value;
+}
+
+function eventStart(event) {
+  return new Date(event.fechaInicio);
+}
+
+function eventEnd(event) {
+  if (event.fechaFin) return new Date(event.fechaFin);
+  return event.allDay ? endOfDay(eventStart(event)) : eventStart(event);
+}
+
+function sameDay(a, b) {
+  return startOfDay(a).getTime() === startOfDay(b).getTime();
+}
+
+function eventOverlapsRange(event, start, end) {
+  const eventStartDate = eventStart(event);
+  const eventEndDate = eventEnd(event);
+  return eventStartDate <= end && eventEndDate >= start;
+}
+
+function eventOccursOnDate(event, dateKey) {
+  const dayStart = new Date(`${dateKey}T00:00`);
+  const dayEnd = new Date(`${dateKey}T23:59:59`);
+  return eventOverlapsRange(event, dayStart, dayEnd);
+}
+
+function eventHasTime(event) {
+  return !event.allDay && String(event.fechaInicio || "").includes("T") && !String(event.fechaInicio || "").endsWith("T00:00");
+}
+
+function formatEventTime(event) {
+  const start = eventStart(event);
+  const end = eventEnd(event);
+  if (event.allDay) {
+    if (!sameDay(start, end)) return `Del ${start.toLocaleDateString("es-ES")} al ${end.toLocaleDateString("es-ES")}`;
+    return start.toLocaleDateString("es-ES");
+  }
+  const startLabel = start.toLocaleString("es-ES", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+  if (!event.fechaFin) return start.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+  const endOptions = sameDay(start, end) ? { hour: "2-digit", minute: "2-digit" } : { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" };
+  return `${startLabel} → ${end.toLocaleString("es-ES", endOptions)}`;
+}
+
+function eventDurationMinutes(event) {
+  if (event.durationMinutes) return Number(event.durationMinutes);
+  if (!event.fechaFin) return 0;
+  return Math.max(0, Math.round((eventEnd(event) - eventStart(event)) / 60000));
+}
+
+function eventTypeIcon(type) {
+  const icons = {
+    estudio: "📘",
+    repaso: "🔁",
+    practica: "✍️",
+    simulacro: "📝",
+    examen: "⚠️",
+    ocio: "🎧",
+    ejercicio: "🏃",
+    deporte: "🏃",
+    familia: "🏡",
+    cumpleaños: "🎂",
+    cumpleanos: "🎂",
+    comunion: "☀️",
+    descanso: "🌙",
+    personal: "•",
+  };
+  return icons[type] || "•";
+}
+
+function plannerLabel() {
+  const formatter = new Intl.DateTimeFormat("es-ES", { month: "long", year: "numeric" });
+  if (plannerView === "month") return formatter.format(plannerDate);
+  if (plannerView === "day") return new Intl.DateTimeFormat("es-ES", { dateStyle: "full" }).format(plannerDate);
+  const { start, end } = plannerRange();
+  return `${start.toLocaleDateString("es-ES")} - ${end.toLocaleDateString("es-ES")}`;
+}
+
+function eventsInPlannerRange(events) {
+  const { start, end } = plannerRange();
+  return events.filter((event) => eventOverlapsRange(event, start, end));
+}
+
+function renderPlanner() {
+  renderPlannerPeriodSummary();
+  renderPlannerCalendar();
+  renderPlannerEventList();
+  renderPlannerStats();
+  renderUpcomingEvents();
+}
+
+function renderUpcomingEvents() {
+  if (!elements.upcomingEventsList) return;
+  const now = new Date();
+  const events = getPlannerEventsByContext(activePlannerContext())
+    .filter((event) => new Date(event.fechaInicio) >= now && event.estado !== "completado")
+    .sort((a, b) => new Date(a.fechaInicio) - new Date(b.fechaInicio))
+    .slice(0, 3);
+  elements.upcomingEventsList.innerHTML = "";
+  if (events.length === 0) {
+    const empty = document.createElement("span");
+    empty.textContent = "Sin eventos próximos.";
+    elements.upcomingEventsList.append(empty);
+    return;
+  }
+  events.forEach((event) => {
+    const item = document.createElement("span");
+    item.className = `upcoming-event event-${event.tipo}`;
+    item.textContent = `${new Date(event.fechaInicio).toLocaleDateString("es-ES", { day: "2-digit", month: "short" })} · ${event.titulo}`;
+    elements.upcomingEventsList.append(item);
+  });
+}
+
+function renderPlannerPeriodSummary() {
+  const events = eventsInPlannerRange(getPlannerEventsByContext(activePlannerContext()));
+  const studyMinutes = events
+    .filter((event) => ["estudio", "repaso", "practica", "simulacro"].includes(event.tipo))
+    .reduce((sum, event) => sum + eventDurationMinutes(event), 0);
+  const exams = events.filter((event) => event.tipo === "examen");
+  const completed = events.filter((event) => event.estado === "completado").length;
+  const pending = events.length - completed;
+  elements.plannerPeriodSummary.innerHTML = `
+    <article class="planner-summary-card ui-level-3">
+      <span>Resumen del periodo</span>
+      <strong>${events.length}</strong>
+      <em>eventos</em>
+    </article>
+    <article class="planner-summary-card ui-level-3">
+      <span>Estudio</span>
+      <strong>${Math.floor(studyMinutes / 60)} h ${studyMinutes % 60} min</strong>
+      <em>programados</em>
+    </article>
+    <article class="planner-summary-card ui-level-3">
+      <span>Exámenes</span>
+      <strong>${exams.length}</strong>
+      <em>${exams[0]?.titulo || "sin próximos"}</em>
+    </article>
+    <article class="planner-summary-card ui-level-3">
+      <span>Estado</span>
+      <strong>${completed}/${events.length}</strong>
+      <em>${pending} pendiente(s)</em>
+    </article>
+  `;
+}
+
+function renderPlannerCalendar() {
+  const events = getPlannerEventsByContext(activePlannerContext());
+  elements.plannerCurrentLabel.textContent = plannerLabel();
+  elements.plannerCalendar.className = `planner-calendar planner-${plannerView}`;
+  elements.plannerCalendar.innerHTML = "";
+  const rangeEvents = eventsInPlannerRange(events);
+
+  if (plannerView === "month") {
+    const first = new Date(plannerDate.getFullYear(), plannerDate.getMonth(), 1);
+    const startOffset = (first.getDay() + 6) % 7;
+    const days = new Date(plannerDate.getFullYear(), plannerDate.getMonth() + 1, 0).getDate();
+    for (let i = 0; i < startOffset + days; i += 1) {
+      const cell = document.createElement("div");
+      cell.className = "planner-day-cell";
+      if (i >= startOffset) {
+        const day = i - startOffset + 1;
+        const key = `${plannerDate.getFullYear()}-${String(plannerDate.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        cell.dataset.date = key;
+        const dayEvents = rangeEvents.filter((event) => eventOccursOnDate(event, key));
+        if (sameDay(new Date(`${key}T00:00`), new Date())) cell.classList.add("is-today");
+        if (dayEvents.some((event) => event.tipo === "examen")) cell.classList.add("has-exam");
+        cell.innerHTML = `<strong>${day}</strong><div class="planner-day-events"></div>`;
+        dayEvents.slice(0, 3).forEach((event) => cell.querySelector(".planner-day-events").append(renderPlannerEventPill(event)));
+        if (dayEvents.length > 3) {
+          const more = document.createElement("span");
+          more.className = "planner-more";
+          more.textContent = `+${dayEvents.length - 3} más`;
+          cell.querySelector(".planner-day-events").append(more);
+        }
+      } else {
+        cell.classList.add("is-empty");
+      }
+      elements.plannerCalendar.append(cell);
+    }
+    return;
+  }
+
+  const { start, end } = plannerRange();
+  for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
+    const key = date.toISOString().slice(0, 10);
+    const dayEvents = rangeEvents.filter((event) => eventOccursOnDate(event, key));
+    const cell = document.createElement("div");
+    cell.className = "planner-day-cell";
+    if (sameDay(date, new Date())) cell.classList.add("is-today");
+    if (dayEvents.some((event) => event.tipo === "examen")) cell.classList.add("has-exam");
+    cell.dataset.date = key;
+    cell.innerHTML = `<strong>${date.toLocaleDateString("es-ES", { weekday: "short", day: "numeric" })}</strong><div class="planner-day-events"></div>`;
+    dayEvents.slice(0, plannerView === "day" ? 24 : 6).forEach((event) => cell.querySelector(".planner-day-events").append(renderPlannerEventPill(event)));
+    elements.plannerCalendar.append(cell);
+  }
+}
+
+function renderPlannerEventPill(event) {
+  const pill = document.createElement("button");
+  pill.className = `planner-event event-${event.tipo} state-${event.estado}`;
+  pill.type = "button";
+  pill.draggable = true;
+  pill.dataset.eventId = event.id;
+  pill.textContent = `${eventTypeIcon(event.tipo)} ${eventHasTime(event) ? `${new Date(event.fechaInicio).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })} · ` : ""}${event.titulo}`;
+  return pill;
+}
+
+function renderPlannerEventList() {
+  const events = eventsInPlannerRange(getPlannerEventsByContext(activePlannerContext())).sort((a, b) => new Date(a.fechaInicio) - new Date(b.fechaInicio));
+  elements.plannerEventList.innerHTML = "";
+  if (events.length === 0) {
+    addItemCard(elements.plannerEventList, "No hay eventos en este periodo.", "Crea un evento manual o cambia de vista.");
+    return;
+  }
+  events.forEach((event) => {
+    const item = document.createElement("article");
+    item.className = `planner-list-item ui-level-3 event-${event.tipo}`;
+    item.innerHTML = `
+      <div>
+        <div class="planner-list-title"><span class="event-dot"></span><strong></strong></div>
+        <p></p>
+        <span class="status-pill"></span>
+      </div>
+      <div class="planner-list-actions">
+        <button class="secondary-button" type="button" data-planner-action="edit">Editar</button>
+        <button class="secondary-button" type="button" data-planner-action="complete">Completar</button>
+        <button class="secondary-button" type="button" data-planner-action="delete">Eliminar</button>
+      </div>
+    `;
+    item.querySelector("strong").textContent = event.titulo;
+    const duration = eventDurationMinutes(event);
+    const contextText = [event.asignatura, event.bloque].filter(Boolean).join(" · ");
+    item.querySelector("p").textContent = `${event.tipo} · ${formatEventTime(event)}${duration ? ` · ${duration} min` : ""}${contextText ? ` · ${contextText}` : ""}${event.descripcion ? ` · ${event.descripcion}` : ""}`;
+    item.querySelector(".status-pill").textContent = `${event.estado} · prioridad ${event.prioridad}`;
+    item.querySelectorAll("[data-planner-action]").forEach((button) => {
+      button.dataset.eventId = event.id;
+    });
+    elements.plannerEventList.append(item);
+  });
+}
+
+function renderPlannerStats() {
+  const stats = getPlannerStats(activePlannerContext());
+  const typeRows = Object.entries(stats.byType)
+    .map(([type, count]) => {
+      const width = stats.total ? Math.max(8, Math.round((count / stats.total) * 100)) : 0;
+      return `<div class="planner-stat-row"><span>${type}</span><div><i style="width:${width}%"></i></div><strong>${count}</strong></div>`;
+    })
+    .join("");
+  elements.plannerStatsContent.innerHTML = `
+    <div class="training-grid">
+      <article class="mini-card ui-level-3"><strong>Cumplimiento</strong><span>${stats.completionRate}%</span></article>
+      <article class="mini-card ui-level-3"><strong>Eventos</strong><span>${stats.completed}/${stats.total}</span></article>
+      <article class="mini-card ui-level-3"><strong>Tiempo</strong><span>${Math.round(stats.totalMinutes / 60)} h ${stats.totalMinutes % 60} min</span></article>
+    </div>
+    <div class="planner-bars">${typeRows || "<p class='drawer-copy'>Sin datos todavía.</p>"}</div>
+  `;
+}
+
+function fillPlannerEventForm(event) {
+  const start = eventStart(event);
+  const end = event.fechaFin ? eventEnd(event) : null;
+  elements.plannerEventId.value = event.id;
+  elements.plannerEventType.value = event.tipo;
+  elements.plannerEventTitle.value = event.titulo;
+  elements.plannerEventDescription.value = event.descripcion || "";
+  elements.plannerEventDate.value = event.fechaInicio ? event.fechaInicio.slice(0, 10) : "";
+  elements.plannerEventStartTime.value = event.allDay ? "" : `${String(start.getHours()).padStart(2, "0")}:${String(start.getMinutes()).padStart(2, "0")}`;
+  elements.plannerEventEndDate.value = end && !sameDay(start, end) ? event.fechaFin.slice(0, 10) : "";
+  elements.plannerEventEndTime.value = end && !event.allDay ? `${String(end.getHours()).padStart(2, "0")}:${String(end.getMinutes()).padStart(2, "0")}` : "";
+  elements.plannerEventDuration.value = event.durationMinutes || "";
+  elements.plannerEventPriority.value = event.prioridad;
+}
+
+function openReflection(eventId) {
+  elements.plannerReflectionEventId.value = eventId;
+  elements.plannerUnderstood.value = "";
+  elements.plannerReviewNeeded.value = "";
+  elements.plannerDifficulty.value = "media";
+  if (typeof elements.plannerReflectionModal.showModal === "function") {
+    elements.plannerReflectionModal.showModal();
+  } else {
+    elements.plannerReflectionModal.classList.add("open");
+  }
+}
+
+function closeReflection() {
+  if (typeof elements.plannerReflectionModal.close === "function") {
+    elements.plannerReflectionModal.close();
+  } else {
+    elements.plannerReflectionModal.classList.remove("open");
+  }
+}
+
+function quickPlanLabels(kind) {
+  const labels = {
+    today: ["¿Cuánto tiempo tienes hoy?", "¿Qué asignatura o tema quieres priorizar?", "¿Tienes algún evento hoy?"],
+    week: ["¿Cuánto tiempo aproximado al día?", "¿Qué exámenes o asignaturas son prioritarios?", "¿Qué días puedes estudiar?"],
+    subject: ["¿Cuánto tiempo aproximado al día?", "Asignatura y temas/bloques", "Fecha de examen si existe, nivel y objetivo"],
+    exam: ["¿Cuánto tiempo tienes al día?", "¿Qué temas entran?", "¿Cuándo es el examen?"],
+    express: ["¿Cuándo es el examen?", "¿Qué asignatura y temas entran?", "¿Qué llevas peor y cuánto tiempo tienes?"],
+    programmed: ["Asignatura y fecha aproximada", "Días disponibles y tiempo diario", "Nivel actual y objetivo"],
+    christmas: ["Fechas de Navidad disponibles", "Asignaturas prioritarias", "Eventos familiares, ocio y objetivo"],
+    easter: ["Fechas de Semana Santa disponibles", "Asignaturas prioritarias", "Eventos familiares, ocio y objetivo"],
+    reviews: ["¿Cuánto tiempo tienes?", "¿Qué errores o conceptos quieres repasar?", "¿Quieres flashcards o simulacro?"],
+    reorganize: ["¿Cuánto tiempo queda libre?", "¿Qué se ha movido o cancelado?", "¿Qué hay que proteger sí o sí?"],
+    emergency: ["¿Cuánto tiempo real tienes?", "¿Qué temas entran?", "¿Qué llevas peor y cuándo es el examen?"],
+    now: ["¿Cuánto tiempo tienes ahora?", "¿Quieres priorizar algo concreto?", "¿Hay examen cercano o energía baja?"],
+  };
+  return labels[kind] || labels.today;
+}
+
+function setQuickPlanKind(kind) {
+  const [time, priority, extra] = quickPlanLabels(kind);
+  elements.quickPlanKind.value = kind;
+  elements.quickPlanTimeLabel.textContent = time;
+  elements.quickPlanPriorityLabel.textContent = priority;
+  elements.quickPlanExtraLabel.textContent = extra;
+  elements.quickPlanResult.innerHTML = "";
+  pendingQuickPlan = null;
+}
+
+function quickPlanPreset(kind) {
+  const presets = {
+    today: { days: 1, title: "Plan de hoy", minutes: 45 },
+    week: { days: 7, title: "Plan semanal", minutes: 60 },
+    subject: { days: 14, title: "Plan por asignatura", minutes: 60 },
+    exam: { days: 21, title: "Plan hasta examen", minutes: 60 },
+    express: { days: 3, title: "Modo express", minutes: 50 },
+    programmed: { days: 28, title: "Estudio programado", minutes: 60 },
+    christmas: { days: 14, title: "Plan de Navidad", minutes: 55 },
+    easter: { days: 10, title: "Plan de Semana Santa", minutes: 55 },
+    reviews: { days: 7, title: "Organización de repasos", minutes: 40 },
+    reorganize: { days: 5, title: "Reorganización del calendario", minutes: 45 },
+    emergency: { days: 3, title: "Plan rápido de emergencia", minutes: 50 },
+    now: { days: 1, title: "Qué estudiar ahora", minutes: 25 },
+  };
+  return presets[kind] || presets.today;
+}
+
+function futureDate(days) {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function createQuickPlanPreview(event) {
+  event.preventDefault();
+  const kind = elements.quickPlanKind.value;
+  const preset = quickPlanPreset(kind);
+  const priority = elements.quickPlanPriority.value.trim() || activeArea();
+  const time = elements.quickPlanTime.value.trim();
+  const extra = elements.quickPlanExtra.value.trim();
+  const minutes = Number(String(time).match(/\d+/)?.[0] || preset.minutes);
+  pendingQuickPlan = generateAutomaticPlan(
+    {
+      asignatura: activeAgentState().subject,
+      bloqueTema: priority,
+      fechaExamen: kind === "today" ? futureDate(2) : kind === "emergency" ? futureDate(3) : futureDate(preset.days),
+      nivelInicial: kind === "emergency" ? "bajo" : "medio",
+      tiempoDiario: minutes,
+      diasSemana: kind === "today" ? 1 : 5,
+      objetivo: kind === "emergency" ? "aprobar" : "buena nota",
+      incluirDescansos: !["today", "emergency", "express", "now"].includes(kind),
+      incluirEjercicio: ["week", "subject", "exam", "programmed", "christmas", "easter"].includes(kind),
+    },
+    activePlannerContext(),
+    { save: false }
+  );
+  pendingQuickPlan.plan.descripcion = `${preset.title}. ${extra ? `Contexto: ${extra}` : "Propuesta simulada bajo demanda."}`;
+  renderQuickPlanPreview();
+}
+
+function renderQuickPlanPreview() {
+  if (!pendingQuickPlan) return;
+  const expressNote = ["express", "emergency"].includes(elements.quickPlanKind.value)
+    ? '<p class="ai-detection-note ui-level-3">Modo express: prioriza rendimiento rápido, no aprendizaje profundo completo.</p>'
+    : "";
+  elements.quickPlanResult.innerHTML = `
+    <article class="generated-material-card ui-level-2">
+      <div class="generated-material-head">
+        <div>
+          <span class="source-badge">🗓️ Propuesta no guardada</span>
+          <h4>${pendingQuickPlan.plan.descripcion}</h4>
+          <p>Se guardará solo si confirmas.</p>
+        </div>
+        <button id="save-quick-plan" class="primary-button ui-action-primary" type="button">Guardar en calendario</button>
+      </div>
+      ${expressNote}
+      <div class="generated-material-content">
+        ${pendingQuickPlan.events
+          .slice(0, 8)
+          .map((event) => `<section class="generated-list ui-level-3"><h5>${escapeHtml(event.titulo)}</h5><ul><li>${escapeHtml(event.tipo)} · ${escapeHtml(new Date(event.fechaInicio).toLocaleString("es-ES"))}</li><li>${escapeHtml(event.descripcion)}</li></ul></section>`)
+          .join("")}
+      </div>
+    </article>
+  `;
+}
+
+function saveQuickPlan() {
+  if (!pendingQuickPlan) return;
+  saveGeneratedPlan(pendingQuickPlan.plan, pendingQuickPlan.events);
+  addAgentMessage(`Plan guardado en calendario: ${pendingQuickPlan.events.length} evento(s).`);
+  pendingQuickPlan = null;
+  elements.quickPlanResult.innerHTML = "<p class=\"upload-status success\">✅ Plan guardado en calendario.</p>";
+  renderPlanner();
+  renderUpcomingEvents();
+}
+
+function activeVisualContext() {
+  return activeErrorContext();
+}
+
+function renderVisualPending() {
+  const calendars = getCalendarImportsByContext(activeVisualContext());
+  const attachments = getChatAttachmentsByContext(activeVisualContext());
+  elements.visualPendingList.innerHTML = "";
+  if (calendars.length + attachments.length === 0) {
+    addItemCard(elements.visualPendingList, "Sin material visual pendiente", "Adjunta una foto al chat o sube un calendario foto/PDF.");
+    return;
+  }
+  calendars.forEach((item) => elements.visualPendingList.append(renderPendingVisualCard(item, "calendar")));
+  attachments.forEach((item) => elements.visualPendingList.append(renderPendingVisualCard(item, "chat")));
+}
+
+function renderPendingVisualCard(item, kind) {
+  const card = document.createElement("article");
+  card.className = "visual-pending-card ui-level-3";
+  const originLabel =
+    item.origen === "camara_chat"
+      ? "cámara del chat"
+      : item.origen === "galeria_chat"
+        ? "galería del chat"
+        : item.origen === "calendario_subido"
+          ? "calendario subido"
+          : "foto del chat";
+  card.innerHTML = `
+    <div>
+      <span class="source-badge"></span>
+      <strong></strong>
+      <p></p>
+    </div>
+    <div class="concept-actions">
+      <button class="secondary-button" type="button" data-visual-pending-action="topic">Asociar a tema</button>
+      <button class="secondary-button" type="button" data-visual-pending-action="event">Crear evento manual</button>
+      <button class="secondary-button" type="button" data-visual-pending-action="doubt">Marcar duda visual</button>
+      <button class="secondary-button" type="button" data-visual-pending-action="delete">Eliminar</button>
+    </div>
+  `;
+  card.dataset.pendingKind = kind;
+  card.dataset.pendingId = item.id;
+  card.querySelector(".source-badge").textContent = kind === "calendar" ? "📅 Calendario pendiente IA real" : `🖼️ ${originLabel} pendiente IA real`;
+  card.querySelector("strong").textContent = item.nombreArchivo;
+  card.querySelector("p").textContent = `${originLabel} · ${item.tipoArchivo} · ${formatFileSize(item.tamano || 0)} · estado: ${item.estado}${item.temaAsociado ? ` · tema: ${item.temaAsociado}` : ""}${item.dudaVisual ? " · duda visual" : ""}`;
+  if (kind === "calendar") {
+    card.querySelector('[data-visual-pending-action="topic"]').classList.add("hidden");
+    card.querySelector('[data-visual-pending-action="doubt"]').classList.add("hidden");
+  } else {
+    card.querySelector('[data-visual-pending-action="event"]').textContent = "Programar repaso";
+  }
+  return card;
+}
+
+function handleVisualPendingAction(action, kind, id) {
+  if (action === "delete") {
+    if (kind === "calendar") deleteCalendarImport(id);
+    if (kind === "chat") deleteChatAttachment(id);
+  }
+  if (action === "topic" && kind === "chat") {
+    const topic = window.prompt("Tema o parte asociada:", activeArea());
+    if (topic) updateChatAttachment(id, { temaAsociado: topic });
+  }
+  if (action === "doubt" && kind === "chat") {
+    updateChatAttachment(id, { dudaVisual: true });
+    addAgentMessage("Foto marcada como duda visual. En IA real podré analizarla directamente.");
+  }
+  if (action === "event") {
+    schedulePlannerEvent({
+      tipo: kind === "calendar" ? "personal" : "repaso",
+      titulo: kind === "calendar" ? "Evento desde calendario subido" : `Repaso de duda visual · ${activeArea()}`,
+      descripcion: "Creado manualmente desde material visual pendiente.",
+      minutesFromNow: 120,
+    });
+  }
+  renderVisualPending();
+}
+
+function handleChatAttachmentAction(action, attachmentId) {
+  if (action === "archive") {
+    elements.chatAttachmentStatus.textContent = "La foto ya está archivada en Material visual pendiente.";
+    elements.chatAttachmentStatus.classList.remove("hidden");
+    openToolScreen("visualPending");
+    renderVisualPending();
+    return;
+  }
+  if (action === "topic") {
+    const topic = window.prompt("Tema o parte asociada:", activeArea());
+    if (topic) updateChatAttachment(attachmentId, { temaAsociado: topic });
+  }
+  if (action === "doubt") {
+    updateChatAttachment(attachmentId, { dudaVisual: true });
+    addAgentMessage("Foto marcada como duda visual. En IA real podré analizarla directamente.");
+  }
+  if (action === "event") {
+    schedulePlannerEvent({
+      tipo: "repaso",
+      titulo: `Repaso de foto del chat · ${activeArea()}`,
+      descripcion: "Repaso programado desde una imagen adjunta al chat.",
+      minutesFromNow: 120,
+    });
+  }
+  if (action === "delete") {
+    deleteChatAttachment(attachmentId);
+    elements.chatAttachmentStatus.textContent = "Adjunto eliminado. Solo se ha borrado su metadato.";
+    elements.chatAttachmentStatus.classList.remove("hidden");
+  }
+  renderChat();
+  renderVisualPending();
+}
+
+function inboxContextLabels(item) {
+  return {
+    student: agents[item.studentId]?.name || item.alumno || item.studentId || "Alumno",
+    course: item.courseName || item.courseId || item.curso || "Curso",
+    subject: item.subjectName || item.subjectId || item.asignatura || "Asignatura",
+    block: item.blockName || item.blockId || item.bloque || "",
+  };
+}
+
+function normalizeInboxDate(value) {
+  return value ? new Date(value).toLocaleDateString("es-ES") : "Sin fecha";
+}
+
+function inboxSourceKey(source, id) {
+  return `${source}:${id}`;
+}
+
+function inboxStatus(baseStatus, sourceKey) {
+  return getInboxItemState(sourceKey).status || baseStatus;
+}
+
+function buildInboxItem(base) {
+  const override = getInboxItemState(base.sourceKey);
+  return {
+    ...base,
+    ...override,
+    status: override.status || base.status,
+    observations: override.observations || "",
+    associatedTopic: override.associatedTopic || base.associatedTopic || "",
+  };
+}
+
+function fileInboxType(file) {
+  const name = String(file.fileName || "").toLowerCase();
+  const mime = String(file.mimeType || "").toLowerCase();
+  if (mime.includes("pdf") || name.endsWith(".pdf")) return "pdf";
+  return "archivo";
+}
+
+function buildMaterialInboxItems() {
+  const fileItems = loadFileMetadata().map((file) => {
+    const type = fileInboxType(file);
+    const sourceKey = inboxSourceKey("file", file.id);
+    const baseStatus = file.autoDetectTopic ? "pendiente_ia_real" : "asociado_a_tema";
+    return buildInboxItem({
+      id: file.id,
+      source: "file",
+      sourceKey,
+      title: file.fileName,
+      materialType: type,
+      origin: file.captureMode === "mobile_camera" ? "escáner móvil" : "archivo subido",
+      studentId: file.studentId,
+      courseId: file.courseId,
+      subjectId: file.subjectId,
+      blockId: file.blockId || file.subblockId || "",
+      date: file.uploadedAt,
+      status: inboxStatus(baseStatus, sourceKey),
+      badge: type === "pdf" ? "PDF" : "Archivo",
+      description: `${file.materialKind || "material"} · ${file.topicName || "sin tema"} · ${file.status}`,
+      raw: file,
+    });
+  });
+
+  const chatItems = getAllChatAttachments().map((attachment) => {
+    const sourceKey = inboxSourceKey("chat-attachment", attachment.id);
+    const type = attachment.dudaVisual ? "duda_visual" : attachment.origen === "camara_chat" ? "foto_camara" : attachment.origen === "galeria_chat" ? "foto_galeria" : "foto_chat";
+    return buildInboxItem({
+      id: attachment.id,
+      source: "chat-attachment",
+      sourceKey,
+      title: attachment.nombreArchivo,
+      materialType: type,
+      origin: attachment.origen === "camara_chat" ? "cámara del chat" : "galería del chat",
+      studentId: attachment.alumno,
+      courseId: attachment.curso,
+      subjectId: attachment.asignatura,
+      blockId: attachment.bloque || "",
+      date: attachment.fecha,
+      status: inboxStatus(attachment.temaAsociado ? "asociado_a_tema" : "pendiente_ia_real", sourceKey),
+      badge: attachment.dudaVisual ? "Duda visual" : "Foto chat",
+      associatedTopic: attachment.temaAsociado,
+      description: `${attachment.tipoArchivo} · ${formatFileSize(attachment.tamano || 0)} · pendiente de IA real`,
+      raw: attachment,
+    });
+  });
+
+  const calendarItems = getAllCalendarImports().map((calendar) => {
+    const sourceKey = inboxSourceKey("calendar", calendar.id);
+    return buildInboxItem({
+      id: calendar.id,
+      source: "calendar",
+      sourceKey,
+      title: calendar.nombreArchivo,
+      materialType: "calendario",
+      origin: "calendario subido",
+      studentId: calendar.alumno,
+      courseId: calendar.curso,
+      subjectId: "",
+      blockId: "",
+      date: calendar.fechaSubida,
+      status: inboxStatus("pendiente_ia_real", sourceKey),
+      badge: "Calendario",
+      description: `${calendar.tipoArchivo} · ${formatFileSize(calendar.tamano || 0)} · pendiente de IA real`,
+      raw: calendar,
+    });
+  });
+
+  const generatedItems = getAllGeneratedMaterials().map((material) => {
+    const sourceKey = inboxSourceKey("generated-material", material.id);
+    const isChatResponse = (material.materialType || material.tipoMaterial) === "respuesta_chat";
+    return buildInboxItem({
+      id: material.id,
+      source: "generated-material",
+      sourceKey,
+      title: material.topic || material.materialTypeLabel || "Material generado",
+      materialType: isChatResponse ? "respuesta_chat" : "material_generado",
+      origin: material.origin || material.sourceType || "material generado",
+      studentId: material.studentId,
+      courseId: material.courseId,
+      subjectId: material.subjectId,
+      blockId: material.blockId || "",
+      date: material.createdAt,
+      status: inboxStatus("convertido_en_material", sourceKey),
+      badge: isChatResponse ? "Respuesta chat" : "Material generado",
+      description: `${material.materialTypeLabel || materialTypeName(material.tipoMaterial || material.materialType)} · ${material.sourceLabel || "simulado"}`,
+      raw: material,
+    });
+  });
+
+  const conceptItems = getAllDifficultConcepts().map((concept) => {
+    const sourceKey = inboxSourceKey("difficult-concept", concept.id);
+    return buildInboxItem({
+      id: concept.id,
+      source: "difficult-concept",
+      sourceKey,
+      title: concept.title,
+      materialType: "concepto_dificil",
+      origin: concept.source || "concepto difícil",
+      studentId: concept.studentId,
+      courseId: concept.courseId,
+      subjectId: concept.subjectId,
+      blockId: concept.blockId || "",
+      date: concept.createdAt,
+      status: inboxStatus("pendiente_clasificar", sourceKey),
+      badge: "Concepto difícil",
+      description: concept.description || concept.sourceText || "",
+      raw: concept,
+    });
+  });
+
+  return [...fileItems, ...chatItems, ...calendarItems, ...generatedItems, ...conceptItems].filter((item) => item.status !== "eliminado");
+}
+
+function inboxTypeMatches(item, filter) {
+  if (filter === "todos") return item.status !== "archivado";
+  if (filter === "archivado") return item.status === "archivado";
+  if (["pendiente_clasificar", "pendiente_ia_real"].includes(filter)) return item.status === filter;
+  if (filter === "fotos") return ["foto_chat", "foto_camara", "foto_galeria", "duda_visual"].includes(item.materialType);
+  if (filter === "pdf") return item.materialType === "pdf";
+  if (filter === "calendario") return item.materialType === "calendario";
+  if (filter === "concepto_dificil") return item.materialType === "concepto_dificil";
+  if (filter === "material_generado") return ["material_generado", "respuesta_chat"].includes(item.materialType);
+  return true;
+}
+
+function filteredInboxItems() {
+  const type = elements.inboxTypeFilter.value;
+  const subject = elements.inboxSubjectFilter.value;
+  const block = elements.inboxBlockFilter.value;
+  const date = elements.inboxDateFilter.value;
+  return buildMaterialInboxItems()
+    .filter((item) => inboxTypeMatches(item, type))
+    .filter((item) => !subject || item.subjectId === subject)
+    .filter((item) => !block || item.blockId === block)
+    .filter((item) => !date || String(item.date || "").slice(0, 10) === date)
+    .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+}
+
+function renderInboxFilters(items) {
+  const selectedSubject = elements.inboxSubjectFilter.value;
+  const selectedBlock = elements.inboxBlockFilter.value;
+  const subjects = [...new Set(items.map((item) => item.subjectId).filter(Boolean))];
+  const blocks = [...new Set(items.map((item) => item.blockId).filter(Boolean))];
+  elements.inboxSubjectFilter.innerHTML = `<option value="">Todas</option>${subjects.map((subject) => `<option value="${escapeHtml(subject)}">${escapeHtml(subject)}</option>`).join("")}`;
+  elements.inboxBlockFilter.innerHTML = `<option value="">Todos</option>${blocks.map((block) => `<option value="${escapeHtml(block)}">${escapeHtml(block)}</option>`).join("")}`;
+  elements.inboxSubjectFilter.value = subjects.includes(selectedSubject) ? selectedSubject : "";
+  elements.inboxBlockFilter.value = blocks.includes(selectedBlock) ? selectedBlock : "";
+}
+
+function renderMaterialInbox() {
+  const allItems = buildMaterialInboxItems();
+  renderInboxFilters(allItems);
+  const items = filteredInboxItems();
+  elements.materialInboxList.innerHTML = "";
+  if (!items.length) {
+    addItemCard(elements.materialInboxList, "Sin materiales en esta vista", "Cambia filtros o añade fotos, archivos, conceptos o materiales.");
+    renderInboxDetail(null);
+    return;
+  }
+  if (!items.some((item) => item.sourceKey === selectedInboxItemKey)) selectedInboxItemKey = items[0].sourceKey;
+  items.forEach((item) => elements.materialInboxList.append(renderInboxListItem(item)));
+  renderInboxDetail(items.find((item) => item.sourceKey === selectedInboxItemKey) || items[0]);
+}
+
+function renderInboxListItem(item) {
+  const card = document.createElement("button");
+  card.className = `material-inbox-item ui-level-3${item.sourceKey === selectedInboxItemKey ? " is-active" : ""}`;
+  card.type = "button";
+  card.dataset.inboxItem = item.sourceKey;
+  const labels = inboxContextLabels(item);
+  card.innerHTML = `
+    <span class="source-badge"></span>
+    <strong></strong>
+    <small></small>
+  `;
+  card.querySelector(".source-badge").textContent = `${item.badge} · ${statusLabel(item.status)}`;
+  card.querySelector("strong").textContent = item.title;
+  card.querySelector("small").textContent = `${labels.subject}${labels.block ? ` · ${labels.block}` : ""} · ${normalizeInboxDate(item.date)}`;
+  return card;
+}
+
+function statusLabel(status) {
+  const labels = {
+    pendiente_clasificar: "Pendiente",
+    pendiente_ia_real: "IA real pendiente",
+    asociado_a_tema: "Asociado a tema",
+    convertido_en_material: "Convertido",
+    programado_en_calendario: "Programado",
+    archivado: "Archivado",
+    eliminado: "Eliminado",
+  };
+  return labels[status] || status || "Pendiente";
+}
+
+function renderInboxDetail(item) {
+  if (!item) {
+    elements.materialInboxDetail.innerHTML = `<p class="drawer-copy">Selecciona un item para ver detalle y acciones.</p>`;
+    return;
+  }
+  const labels = inboxContextLabels(item);
+  elements.materialInboxDetail.innerHTML = `
+    <div class="inbox-detail-head">
+      <span class="source-badge">${escapeHtml(item.badge)} · ${escapeHtml(statusLabel(item.status))}</span>
+      <h4>${escapeHtml(item.title)}</h4>
+      <p>${escapeHtml(item.description || "Material pendiente de organizar.")}</p>
+    </div>
+    <dl class="inbox-meta">
+      <div><dt>Alumno</dt><dd>${escapeHtml(labels.student)}</dd></div>
+      <div><dt>Curso</dt><dd>${escapeHtml(labels.course)}</dd></div>
+      <div><dt>Asignatura</dt><dd>${escapeHtml(labels.subject)}</dd></div>
+      <div><dt>Bloque</dt><dd>${escapeHtml(labels.block || "Sin bloque")}</dd></div>
+      <div><dt>Origen</dt><dd>${escapeHtml(item.origin)}</dd></div>
+      <div><dt>Fecha</dt><dd>${escapeHtml(normalizeInboxDate(item.date))}</dd></div>
+    </dl>
+    <label class="inbox-notes-label">
+      Observaciones
+      <textarea id="inbox-observations" rows="4" placeholder="Ej. Esta foto corresponde al ejercicio 4 de metabolismo.">${escapeHtml(item.observations || "")}</textarea>
+    </label>
+    <div class="inbox-actions">
+      <button class="secondary-button" type="button" data-inbox-action="save-notes">Guardar observaciones</button>
+      <button class="secondary-button" type="button" data-inbox-action="topic">Asociar a tema</button>
+      <button class="secondary-button" type="button" data-inbox-action="difficult">Concepto difícil</button>
+      <button class="secondary-button" type="button" data-inbox-action="summary">Crear resumen</button>
+      <button class="secondary-button" type="button" data-inbox-action="flashcards">Crear flashcards</button>
+      <button class="secondary-button" type="button" data-inbox-action="questions">Crear preguntas</button>
+      <button class="secondary-button" type="button" data-inbox-action="mock">Crear simulacro</button>
+      <button class="secondary-button" type="button" data-inbox-action="schedule">Programar repaso</button>
+      <button class="secondary-button" type="button" data-inbox-action="calendar">Añadir al calendario</button>
+      <button class="secondary-button" type="button" data-inbox-action="archive">Archivar</button>
+      <button class="secondary-button" type="button" data-inbox-action="delete">Eliminar</button>
+    </div>
+  `;
+}
+
+function inboxItemContext(item) {
+  return {
+    studentId: item.studentId || activeAgentKey(),
+    courseId: item.courseId || activeErrorContext().courseId,
+    subjectId: item.subjectId || activeErrorContext().subjectId,
+    blockId: item.blockId || activeErrorContext().blockId,
+  };
+}
+
+function createMaterialFromInboxItem(item, materialType) {
+  const material = generateStudyMaterial({
+    sourceType: "topic",
+    topic: item.associatedTopic || item.title || activeArea(),
+    subtopic: "",
+    pastedContent: item.description || "",
+    difficulty: "medio",
+    materialType,
+    context: inboxItemContext(item),
+    area: item.title || activeArea(),
+    sourceFileIds: [item.id],
+  });
+  saveGeneratedMaterial(material);
+  if (material.flashcards.length > 0 && item.studentId === activeAgentKey()) {
+    activeAgentState().flashcards = [...material.flashcards.map((card, index) => normalizeFlashcard(card, index, "bandeja")), ...activeAgentState().flashcards].slice(0, 60);
+    material.flashcards.forEach((card) => selectedFlashcards.add(card.id));
+    saveState();
+  }
+  if (material.quiz && item.studentId === activeAgentKey()) {
+    activeAgentState().mocks.unshift(material.quiz);
+    saveState();
+  }
+  setInboxItemStatus(item.sourceKey, "convertido_en_material");
+  addAgentMessage(`Material simulado creado desde la bandeja: ${materialTypeName(materialType)}.`);
+}
+
+function handleInboxAction(action) {
+  const item = buildMaterialInboxItems().find((entry) => entry.sourceKey === selectedInboxItemKey);
+  if (!item) return;
+  if (action === "save-notes") {
+    updateInboxItemState(item.sourceKey, { observations: document.querySelector("#inbox-observations")?.value || "" });
+  }
+  if (action === "topic") {
+    const topic = window.prompt("Tema o parte asociada:", item.associatedTopic || activeArea());
+    if (topic) {
+      updateInboxItemState(item.sourceKey, { associatedTopic: topic, status: "asociado_a_tema" });
+      if (item.source === "chat-attachment") updateChatAttachment(item.id, { temaAsociado: topic });
+    }
+  }
+  if (action === "difficult") {
+    addDifficultConcept(
+      {
+        title: `Concepto difícil · ${item.title}`,
+        description: item.description || item.title,
+        sourceText: item.description || item.title,
+        sourceMessageId: item.raw?.sourceMessageId || item.raw?.asociadoAMensajeChat || "",
+      },
+      inboxItemContext(item)
+    );
+    updateInboxItemState(item.sourceKey, { status: "convertido_en_material" });
+  }
+  if (action === "summary") createMaterialFromInboxItem(item, "resumen");
+  if (action === "flashcards") createMaterialFromInboxItem(item, "flashcards");
+  if (action === "questions" || action === "mock") createMaterialFromInboxItem(item, "simulacro");
+  if (action === "schedule" || action === "calendar") {
+    const start = new Date(Date.now() + 120 * 60000);
+    const end = new Date(start.getTime() + 30 * 60000);
+    addPlannerEvent(
+      {
+        tipo: item.materialType === "calendario" ? "personal" : "repaso",
+        titulo: item.materialType === "calendario" ? `Evento desde calendario · ${item.title}` : `Repaso de bandeja · ${item.title}`,
+        descripcion: item.description || "Evento creado desde Bandeja de material.",
+        fechaInicio: isoInput(start),
+        fechaFin: isoInput(end),
+        prioridad: "media",
+      },
+      { ...inboxItemContext(item), blockName: item.blockId || "" }
+    );
+    setInboxItemStatus(item.sourceKey, "programado_en_calendario");
+    addAgentMessage(`Añadido al calendario desde Bandeja de material: ${item.title}.`);
+    renderPlanner();
+    renderUpcomingEvents();
+  }
+  if (action === "archive") setInboxItemStatus(item.sourceKey, "archivado");
+  if (action === "delete") setInboxItemStatus(item.sourceKey, "eliminado");
+  renderMaterialInbox();
+  renderVisualPending();
+  renderDifficultConcepts();
 }
 
 function renderMaterialGeneratorFields() {
@@ -1217,7 +2705,7 @@ function renderMaterialFileOptions() {
 
   files.forEach((file) => {
     const label = document.createElement("label");
-    label.className = "material-file-option";
+    label.className = "material-file-option ui-level-3";
     label.innerHTML = `
       <input type="checkbox" value="" data-material-file-id="" />
       <span></span>
@@ -1235,12 +2723,13 @@ function renderMaterialResult(material = null) {
 
   if (!material && saved.length === 0) {
     addItemCard(elements.materialGeneratorResult, "Sin material generado", "Crea un resumen, flashcards o simulacro para este bloque.");
+    renderMaterialHistory();
     return;
   }
 
   if (material?.summary) {
     const summary = document.createElement("article");
-    summary.className = "course-summary material-summary";
+    summary.className = "course-summary material-summary ui-level-2";
     summary.innerHTML = `
       <div class="source-row"></div>
       <strong>${escapeHtml(material.summary.title)}</strong>
@@ -1258,25 +2747,233 @@ function renderMaterialResult(material = null) {
   }
 
   if (material) {
-    const counts = document.createElement("div");
-    counts.className = "training-grid material-counts";
-    counts.innerHTML = `
-      <article class="mini-card"><strong>Flashcards</strong><span>${material.flashcards.length}</span></article>
-      <article class="mini-card"><strong>Simulacro</strong><span>${material.quiz ? material.quiz.questions.length : 0} preguntas</span></article>
-      <article class="mini-card"><strong>Origen</strong><span>${material.base.origin}</span></article>
-      <article class="mini-card"><strong>Nivel</strong><span>${material.base.difficulty}</span></article>
-    `;
-    elements.materialGeneratorResult.append(counts);
+    elements.materialGeneratorResult.prepend(renderGeneratedMaterialCard(material));
   }
 
-  const history = document.createElement("div");
-  history.className = "material-history";
-  const latest = saved.slice(0, 4);
-  history.innerHTML = "<h4>Ultimos materiales de este bloque</h4>";
-  latest.forEach((item) => {
-    addItemCard(history, item.topic || activeArea(), `${item.origin} · ${item.materialType} · ${new Date(item.createdAt).toLocaleDateString("es-ES")}`);
+  renderMaterialHistory();
+}
+
+function renderMaterialHistory() {
+  const filter = elements.materialHistoryFilter.value;
+  const allItems = getGeneratedMaterialsByContext(activeErrorContext());
+  const items = filter === "todos" ? allItems : allItems.filter((item) => (item.tipoMaterial || item.materialType) === filter);
+  elements.materialHistoryList.innerHTML = "";
+
+  if (items.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "drawer-copy";
+    empty.textContent = allItems.length === 0 ? "Aún no hay materiales generados en este bloque." : "No hay materiales de este tipo en el bloque.";
+    elements.materialHistoryList.append(empty);
+    return;
+  }
+
+  items.forEach((item) => {
+    const card = document.createElement("article");
+    card.className = "material-history-card ui-level-3";
+    card.innerHTML = `
+      <div>
+        <span class="source-badge"></span>
+        <strong></strong>
+        <p></p>
+      </div>
+      <div class="material-history-actions">
+        <button class="secondary-button" type="button" data-open-material="">Abrir</button>
+        <button class="secondary-button" type="button" data-print-history-material="">Imprimir / PDF</button>
+        <button class="secondary-button" type="button" data-delete-material="">Eliminar</button>
+      </div>
+    `;
+    card.querySelector(".source-badge").textContent = item.sourceLabel || "🧪 Simulado por ahora";
+    card.querySelector("strong").textContent = item.topic || activeArea();
+    card.querySelector("p").textContent = `${item.materialTypeLabel || materialTypeName(item.tipoMaterial || item.materialType)} · ${item.origin || item.sourceType} · ${new Date(item.createdAt).toLocaleDateString("es-ES")}`;
+    card.querySelector("[data-open-material]").dataset.openMaterial = item.id;
+    card.querySelector("[data-print-history-material]").dataset.printHistoryMaterial = item.id;
+    card.querySelector("[data-delete-material]").dataset.deleteMaterial = item.id;
+    elements.materialHistoryList.append(card);
   });
-  elements.materialGeneratorResult.append(history);
+}
+
+function materialTypeName(type) {
+  const names = {
+    resumen: "Resumen",
+    flashcards: "Flashcards",
+    simulacro: "Simulacro",
+    conceptos_clave: "Conceptos clave",
+    errores_frecuentes: "Errores frecuentes",
+    pack_completo: "Pack completo",
+    todo: "Pack completo",
+    respuesta_chat: "Respuesta del chat",
+    concepto_dificil: "Concepto difícil",
+  };
+  return names[type] || type || "Material";
+}
+
+function materialFromHistoryRecord(item) {
+  if (item.printableMaterial) return item.printableMaterial;
+  return {
+    base: {
+      ...item,
+      materialTypeLabel: materialTypeName(item.tipoMaterial || item.materialType),
+      visualRecommendation: item.visualRecommendation || "Imagen no necesaria",
+      visualReason: item.visualReason || "Material histórico guardado antes de la ampliación del historial.",
+      sourceLabel: item.sourceLabel || "🧪 Simulado por ahora",
+    },
+    summary: null,
+    flashcards: [],
+    quiz: null,
+    keyConcepts: [],
+    expectedErrors: [],
+  };
+}
+
+function openMaterialFromHistory(materialId) {
+  const item = getGeneratedMaterialsByContext(activeErrorContext()).find((material) => material.id === materialId);
+  if (!item) return;
+  renderMaterialResult(materialFromHistoryRecord(item));
+}
+
+function printMaterialFromHistory(materialId) {
+  const item = getGeneratedMaterialsByContext(activeErrorContext()).find((material) => material.id === materialId);
+  if (!item) return;
+  printGeneratedMaterial(materialFromHistoryRecord(item));
+}
+
+function deleteMaterialFromHistory(materialId) {
+  const ok = window.confirm("¿Eliminar este material del historial?");
+  if (!ok) return;
+  deleteGeneratedMaterial(materialId);
+  renderMaterialResult();
+}
+
+function renderGeneratedMaterialCard(material) {
+  const context = activeFileContext();
+  const card = document.createElement("article");
+  card.className = "generated-material-card ui-level-2";
+  card.innerHTML = `
+    <div class="generated-material-head">
+      <div>
+        <span class="source-badge"></span>
+        <h4>${escapeHtml(material.base.topic || activeArea())}</h4>
+        <p>${escapeHtml(context.studentName)} · ${escapeHtml(context.courseName)} · ${escapeHtml(context.subjectName)}${context.subblockName ? ` · ${escapeHtml(context.subblockName)}` : ""}</p>
+      </div>
+      <div class="generated-material-actions no-print">
+        <span class="progress-pill">${escapeHtml(material.base.materialTypeLabel || material.base.materialType)}</span>
+        <button class="secondary-button" type="button" data-print-material="">Imprimir / Guardar PDF</button>
+      </div>
+    </div>
+    <div class="training-grid material-counts">
+      <article class="mini-card ui-level-3"><strong>Conceptos</strong><span>${material.keyConcepts?.length || material.summary?.keyConcepts?.length || 0}</span></article>
+      <article class="mini-card ui-level-3"><strong>Flashcards</strong><span>${material.flashcards.length}</span></article>
+      <article class="mini-card ui-level-3"><strong>Simulacro</strong><span>${material.quiz ? material.quiz.questions.length : 0} preguntas</span></article>
+      <article class="mini-card ui-level-3"><strong>Visual</strong><span>${escapeHtml(material.base.visualRecommendation)}</span></article>
+    </div>
+    <div class="generated-material-content"></div>
+  `;
+  card.querySelector("[data-print-material]").addEventListener("click", () => printGeneratedMaterial(material));
+  card.querySelector(".source-badge").textContent = material.base.sourceLabel;
+  const content = card.querySelector(".generated-material-content");
+
+  if (material.base.sourceText && material.base.materialType === "respuesta_chat") {
+    content.append(renderGeneratedList("Respuesta archivada", [material.base.sourceText]));
+  }
+  if (material.keyConcepts?.length) {
+    content.append(renderGeneratedList("Conceptos clave", material.keyConcepts.map((item) => item.text)));
+  }
+  if (material.expectedErrors?.length) {
+    content.append(renderGeneratedList("Errores frecuentes", material.expectedErrors.map((item) => item.text)));
+  }
+  if (material.flashcards.length) {
+    content.append(renderGeneratedList("Flashcards generadas", material.flashcards.map((cardItem) => `${cardItem.question} · ${cardItem.answer}`)));
+  }
+  if (material.quiz) {
+    content.append(renderGeneratedList("Simulacro generado", material.quiz.questions.map((question) => `${question.statement} · Correcta: ${question.correctAnswer}`)));
+  }
+
+  const visual = document.createElement("div");
+  visual.className = "visual-recommendation";
+  visual.innerHTML = `<strong>${escapeHtml(material.base.visualRecommendation)}</strong><span>${escapeHtml(material.base.visualReason)}</span>`;
+  content.append(visual);
+
+  return card;
+}
+
+function printGeneratedMaterial(material) {
+  elements.printArea.innerHTML = buildPrintableMaterial(material);
+  window.print();
+}
+
+function buildPrintableMaterial(material) {
+  const context = activeFileContext();
+  const generatedAt = new Date(material.base.createdAt).toLocaleString("es-ES");
+  const sections = [];
+  if (material.summary) {
+    sections.push(`
+      <section class="print-material-section">
+        <h2>Resumen</h2>
+        <p>${escapeHtml(material.summary.explanation)}</p>
+        ${printList("Conceptos clave", material.summary.keyConcepts)}
+        ${printList("Esquema rápido", material.summary.outline)}
+        ${printList("Errores esperables", material.summary.expectedErrors)}
+        <p><strong>Consejo:</strong> ${escapeHtml(material.summary.examTip)}</p>
+      </section>
+    `);
+  }
+  if (material.base.sourceText && material.base.materialType === "respuesta_chat") {
+    sections.push(`<section class="print-material-section"><h2>Respuesta archivada</h2><p>${escapeHtml(material.base.sourceText)}</p></section>`);
+  }
+  if (material.keyConcepts?.length) {
+    sections.push(`<section class="print-material-section"><h2>Conceptos clave</h2>${printList("", material.keyConcepts.map((item) => item.text))}</section>`);
+  }
+  if (material.expectedErrors?.length) {
+    sections.push(`<section class="print-material-section"><h2>Errores frecuentes</h2>${printList("", material.expectedErrors.map((item) => item.text))}</section>`);
+  }
+  if (material.flashcards.length) {
+    sections.push(`<section class="print-material-section"><h2>Flashcards</h2>${printList("", material.flashcards.map((card) => `${card.question} — ${card.answer}`))}</section>`);
+  }
+  if (material.quiz) {
+    sections.push(`<section class="print-material-section"><h2>Simulacro</h2>${printList("", material.quiz.questions.map((question) => `${question.statement} Respuesta: ${question.correctAnswer}. ${question.explanation}`))}</section>`);
+  }
+
+  return `
+    <article class="printable-material">
+      <header class="print-header">
+        <p>Estudios PRO — Material generado</p>
+        <h1>${escapeHtml(material.base.topic || activeArea())}</h1>
+        <span>${escapeHtml(context.studentName)} · ${escapeHtml(context.courseName)} · ${escapeHtml(context.subjectName)}${context.subblockName ? ` · ${escapeHtml(context.subblockName)}` : ""}</span>
+      </header>
+      <dl class="print-material-meta">
+        <div><dt>Fuente</dt><dd>${escapeHtml(material.base.sourceLabel)}</dd></div>
+        <div><dt>Tipo</dt><dd>${escapeHtml(material.base.materialTypeLabel || material.base.materialType)}</dd></div>
+        <div><dt>Fecha</dt><dd>${escapeHtml(generatedAt)}</dd></div>
+        <div><dt>Apoyo visual</dt><dd>${escapeHtml(material.base.visualRecommendation || "Imagen no necesaria")}</dd></div>
+      </dl>
+      ${sections.join("")}
+      <section class="print-material-section">
+        <h2>Recomendación visual</h2>
+        <p><strong>${escapeHtml(material.base.visualRecommendation || "Imagen no necesaria")}:</strong> ${escapeHtml(material.base.visualReason || "Sin apoyo visual adicional.")}</p>
+      </section>
+    </article>
+  `;
+}
+
+function printList(title, items = []) {
+  if (!items.length) return "";
+  return `
+    ${title ? `<h3>${escapeHtml(title)}</h3>` : ""}
+    <ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+  `;
+}
+
+function renderGeneratedList(title, items) {
+  const section = document.createElement("section");
+  section.className = "generated-list ui-level-3";
+  section.innerHTML = `<h5>${escapeHtml(title)}</h5><ul></ul>`;
+  const list = section.querySelector("ul");
+  items.slice(0, 6).forEach((item) => {
+    const li = document.createElement("li");
+    li.textContent = item;
+    list.append(li);
+  });
+  return section;
 }
 
 function createGeneratedMaterial(event) {
@@ -1413,7 +3110,7 @@ function renderFocusFlashcards() {
   cards.forEach((card) => {
     const review = getReviewForFlashcard(card.id, activeErrorContext());
     const item = document.createElement("article");
-    item.className = `flashcard-study-card origin-${slugify(card.origin || card.source || "base")}`;
+    item.className = `flashcard-study-card ui-level-3 origin-${slugify(card.origin || card.source || "base")}`;
     item.dataset.flashcardId = card.id;
     item.innerHTML = `
       <label class="flashcard-select-row">
@@ -1590,7 +3287,7 @@ function buildPrintHeader() {
 function printFlashcards(cards, requireSelection = false) {
   if (cards.length === 0) {
     const notice = document.createElement("div");
-    notice.className = "mini-card flashcard-notice";
+    notice.className = "mini-card ui-level-3 flashcard-notice";
     notice.innerHTML = "<strong></strong><span></span>";
     notice.querySelector("strong").textContent = requireSelection ? "Selecciona alguna flashcard" : "Sin flashcards para imprimir";
     notice.querySelector("span").textContent = requireSelection ? "Marca una o varias tarjetas antes de imprimir seleccionadas." : "Genera flashcards antes de imprimir.";
@@ -1668,11 +3365,11 @@ function renderErrorSummary(errors) {
   }, {});
   const topType = Object.entries(typeCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "sin datos";
   elements.errorsSummary.innerHTML = `
-    <span>Total: ${counts.total}</span>
-    <span>Pendientes: ${counts.pendiente}</span>
-    <span>En repaso: ${counts.repaso}</span>
-    <span>Superados: ${counts.superado}</span>
-    <span>Tipo mas frecuente: ${topType}</span>
+    <span class="ui-level-3">Total: ${counts.total}</span>
+    <span class="ui-level-3">Pendientes: ${counts.pendiente}</span>
+    <span class="ui-level-3">En repaso: ${counts.repaso}</span>
+    <span class="ui-level-3">Superados: ${counts.superado}</span>
+    <span class="ui-level-3">Tipo mas frecuente: ${topType}</span>
   `;
 }
 
@@ -1726,12 +3423,12 @@ function buildCoursePlan(config) {
 function renderCoursePlan(plan) {
   const safe = (value) => String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
   elements.customCourseResult.innerHTML = `
-    <div class="course-summary"><strong>${safe(plan.title)}</strong><br>${safe(plan.summary)}</div>
+    <div class="course-summary ui-level-2"><strong>${safe(plan.title)}</strong><br>${safe(plan.summary)}</div>
     <div class="plan-grid">
       ${plan.days
         .map(
           (day) => `
-        <article class="plan-day">
+      <article class="plan-day ui-level-3">
           <h3>${safe(day.day)}</h3>
           <p><strong>Objetivo:</strong> ${safe(day.objective)}</p>
           <p><strong>Teoria minima:</strong> ${safe(day.theory)}</p>
@@ -1742,7 +3439,7 @@ function renderCoursePlan(plan) {
         )
         .join("")}
     </div>
-    <div class="review-block"><h3>Repaso final</h3><ul>${plan.review.map((item) => `<li>${safe(item)}</li>`).join("")}</ul></div>
+    <div class="review-block ui-level-2"><h3>Repaso final</h3><ul>${plan.review.map((item) => `<li>${safe(item)}</li>`).join("")}</ul></div>
   `;
 }
 
@@ -1870,6 +3567,11 @@ function render() {
   renderChat();
   renderStudyData();
   renderErrors();
+  renderDifficultConcepts();
+  renderPlanner();
+  renderUpcomingEvents();
+  renderVisualPending();
+  renderMaterialInbox();
   renderProgress();
   renderReviews();
   const lastPlan = activeAgentState().customCourses[0];
@@ -1928,6 +3630,26 @@ elements.showTraining.addEventListener("click", () => {
   openToolScreen("adaptive");
   renderTraining();
 });
+elements.showDifficultConcepts.addEventListener("click", () => {
+  openToolScreen("concepts");
+  renderDifficultConcepts();
+});
+elements.showPlanner.addEventListener("click", () => {
+  openToolScreen("planner");
+  renderPlanner();
+});
+elements.showVisualPending.addEventListener("click", () => {
+  openToolScreen("visualPending");
+  renderVisualPending();
+});
+elements.showPlanningAssistant.addEventListener("click", () => {
+  openToolScreen("planningAssistant");
+  setQuickPlanKind("today");
+});
+elements.showMaterialInbox.addEventListener("click", () => {
+  openToolScreen("materialInbox");
+  renderMaterialInbox();
+});
 elements.showMaterialGenerator.addEventListener("click", () => {
   openToolScreen("generateMaterial");
   renderMaterialGeneratorFields();
@@ -1973,6 +3695,8 @@ elements.pendingPhotoList.addEventListener("change", (event) => {
 elements.saveMobilePhotos.addEventListener("click", savePendingMobilePhotos);
 
 elements.toolBackButtons.forEach((button) => button.addEventListener("click", closeToolScreens));
+elements.expandChat.addEventListener("click", () => setChatExpanded(true));
+elements.collapseChat.addEventListener("click", () => setChatExpanded(false));
 
 document.addEventListener("click", (event) => {
   const helpButton = event.target.closest("[data-help-text]");
@@ -1994,6 +3718,74 @@ elements.chatForm.addEventListener("submit", (event) => {
   addChatMessage(activeAgent().name, question, "user");
   addAgentMessage(buildSimulatedAnswer(question));
   elements.chatInput.value = "";
+});
+
+function handleChatPhotoSelected(event, origin) {
+  const [file] = Array.from(event.target.files || []);
+  if (!file) return;
+  const userMessage = addChatMessage(activeAgent().name, `Foto adjunta: ${file.name}`, "user");
+  const attachment = addChatAttachment(file, activeVisualContext(), userMessage.id, origin);
+  const originLabel = origin === "camara_chat" ? "cámara" : "galería";
+  elements.chatAttachmentStatus.textContent = `Foto adjunta como metadato: ${attachment.nombreArchivo}. Pendiente de IA real.`;
+  elements.chatAttachmentStatus.classList.remove("hidden");
+  elements.chatPhotoOptions.classList.add("hidden");
+  elements.chatPhotoToggle.setAttribute("aria-expanded", "false");
+  addAgentMessage(`He recibido la imagen desde ${originLabel} como referencia. Cuando conectemos IA visual podré analizarla directamente. De momento, escribe qué parte quieres que te explique.`);
+  renderChat();
+  renderVisualPending();
+  event.target.value = "";
+}
+
+elements.chatPhotoToggle.addEventListener("click", () => {
+  const isHidden = elements.chatPhotoOptions.classList.toggle("hidden");
+  elements.chatPhotoToggle.setAttribute("aria-expanded", String(!isHidden));
+});
+
+elements.chatCameraTrigger.addEventListener("click", () => {
+  elements.chatCameraInput.click();
+});
+
+elements.chatGalleryTrigger.addEventListener("click", () => {
+  elements.chatGalleryInput.click();
+});
+
+elements.chatCameraInput.addEventListener("change", (event) => handleChatPhotoSelected(event, "camara_chat"));
+elements.chatGalleryInput.addEventListener("change", (event) => handleChatPhotoSelected(event, "galeria_chat"));
+
+elements.chatMessages.addEventListener("click", (event) => {
+  const attachmentButton = event.target.closest("[data-chat-attachment-action]");
+  if (attachmentButton) {
+    const card = attachmentButton.closest("[data-chat-attachment-id]");
+    if (card) handleChatAttachmentAction(attachmentButton.dataset.chatAttachmentAction, card.dataset.chatAttachmentId);
+    return;
+  }
+  const button = event.target.closest("[data-chat-response-action]");
+  if (!button) return;
+  handleChatResponseAction(button.dataset.chatResponseAction, button.dataset.messageId);
+});
+
+elements.quickChatChips.addEventListener("click", (event) => {
+  const planChip = event.target.closest("[data-plan-kind]");
+  if (planChip) {
+    openToolScreen("planningAssistant");
+    setQuickPlanKind(planChip.dataset.planKind);
+    return;
+  }
+  const chip = event.target.closest("[data-chat-prompt]");
+  if (!chip) return;
+  elements.chatInput.value = chip.dataset.chatPrompt;
+  if (typeof elements.chatForm.requestSubmit === "function") {
+    elements.chatForm.requestSubmit();
+  } else {
+    elements.chatForm.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+  }
+});
+
+elements.historyShortcut.addEventListener("click", () => {
+  openToolScreen("generateMaterial");
+  renderMaterialGeneratorFields();
+  renderMaterialResult();
+  elements.materialHistoryList.scrollIntoView({ block: "start" });
 });
 
 elements.focusChatForm.addEventListener("submit", (event) => {
@@ -2040,6 +3832,15 @@ elements.errorsList.addEventListener("click", (event) => {
   if (!button) return;
   if (button.dataset.errorAction === "review") markAsReviewed(button.dataset.errorId);
   if (button.dataset.errorAction === "solved") updateError(button.dataset.errorId, { status: "superado", lastReviewedAt: new Date().toISOString() });
+  if (button.dataset.errorAction === "schedule") {
+    const error = getErrorsByContext(activeErrorContext()).find((item) => item.id === button.dataset.errorId);
+    schedulePlannerEvent({
+      tipo: "repaso",
+      titulo: `Repaso de error · ${error?.title || activeArea()}`,
+      descripcion: error?.description || "Repaso programado desde memoria de errores.",
+      minutesFromNow: 120,
+    });
+  }
   if (button.dataset.errorAction === "delete") deleteError(button.dataset.errorId);
   render();
 });
@@ -2048,8 +3849,209 @@ elements.trainingFlashcards.addEventListener("click", createFlashcardsFromErrors
 elements.trainingMock.addEventListener("click", createMockFromErrors);
 elements.trainingReviewBlock.addEventListener("click", markActiveBlockAsReviewed);
 elements.trainingBack.addEventListener("click", closeToolScreens);
+elements.conceptsCreateFlashcards.addEventListener("click", () => createFlashcardsFromDifficultConcepts());
+elements.conceptsCreateMock.addEventListener("click", () => createMockFromDifficultConcepts());
+elements.conceptsScheduleReview.addEventListener("click", () => {
+  const count = getDifficultConceptsByContext(activeErrorContext()).length;
+  schedulePlannerEvent({
+    tipo: "repaso",
+    titulo: `Repaso de conceptos difíciles · ${activeArea()}`,
+    descripcion: `${count} concepto(s) difícil(es) guardado(s) para revisar.`,
+    minutesFromNow: 90,
+  });
+  openToolScreen("planner");
+});
+elements.difficultConceptsList.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-concept-action]");
+  if (!button) return;
+  const conceptId = button.dataset.conceptId;
+  if (button.dataset.conceptAction === "review") markDifficultConceptReviewed(conceptId);
+  if (button.dataset.conceptAction === "flashcards") createFlashcardsFromDifficultConcepts([conceptId]);
+  if (button.dataset.conceptAction === "questions") createMockFromDifficultConcepts([conceptId]);
+  if (button.dataset.conceptAction === "delete") deleteDifficultConcept(conceptId);
+  renderDifficultConcepts();
+});
+document.querySelectorAll("[data-planner-view]").forEach((button) =>
+  button.addEventListener("click", () => {
+    plannerView = button.dataset.plannerView;
+    renderPlanner();
+  })
+);
+elements.plannerPrev.addEventListener("click", () => {
+  if (plannerView === "month") plannerDate.setMonth(plannerDate.getMonth() - 1);
+  if (plannerView === "week") plannerDate.setDate(plannerDate.getDate() - 7);
+  if (plannerView === "day") plannerDate.setDate(plannerDate.getDate() - 1);
+  renderPlanner();
+});
+elements.plannerNext.addEventListener("click", () => {
+  if (plannerView === "month") plannerDate.setMonth(plannerDate.getMonth() + 1);
+  if (plannerView === "week") plannerDate.setDate(plannerDate.getDate() + 7);
+  if (plannerView === "day") plannerDate.setDate(plannerDate.getDate() + 1);
+  renderPlanner();
+});
+elements.plannerToday.addEventListener("click", () => {
+  plannerDate = new Date();
+  renderPlanner();
+});
+elements.plannerEventForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const eventDate = elements.plannerEventDate.value;
+  const startTime = elements.plannerEventStartTime.value;
+  const endDate = elements.plannerEventEndDate.value || eventDate;
+  const endTime = elements.plannerEventEndTime.value;
+  const durationMinutes = Number(elements.plannerEventDuration.value || 0);
+  if (!eventDate) return;
+  const startDateTime = `${eventDate}T${startTime || "00:00"}`;
+  let endDateTime = "";
+  if (endTime || elements.plannerEventEndDate.value) {
+    endDateTime = `${endDate}T${endTime || (startTime || "23:59")}`;
+  } else if (durationMinutes && startTime) {
+    endDateTime = isoInput(new Date(new Date(startDateTime).getTime() + durationMinutes * 60000));
+  }
+  const data = {
+    tipo: elements.plannerEventType.value,
+    titulo: elements.plannerEventTitle.value.trim(),
+    descripcion: elements.plannerEventDescription.value.trim(),
+    fechaInicio: startDateTime,
+    fechaFin: endDateTime,
+    durationMinutes,
+    allDay: !startTime,
+    prioridad: elements.plannerEventPriority.value,
+  };
+  if (elements.plannerEventId.value) {
+    updatePlannerEvent(elements.plannerEventId.value, data);
+  } else {
+    addPlannerEvent(data, activePlannerContext());
+  }
+  elements.plannerEventForm.reset();
+  elements.plannerEventId.value = "";
+  renderPlanner();
+});
+elements.calendarImportInput.addEventListener("change", (event) => {
+  const [file] = Array.from(event.target.files || []);
+  if (!file) return;
+  const calendarImport = addCalendarImport(file, activeVisualContext());
+  elements.calendarImportStatus.textContent = `Calendario guardado como referencia: ${calendarImport.nombreArchivo}. Pendiente de IA real.`;
+  elements.calendarImportStatus.className = "upload-status success";
+  renderVisualPending();
+  event.target.value = "";
+});
+elements.calendarManualEvent.addEventListener("click", () => {
+  const start = new Date(Date.now() + 60 * 60000);
+  const end = new Date(start.getTime() + 45 * 60000);
+  elements.plannerEventId.value = "";
+  elements.plannerEventType.value = "personal";
+  elements.plannerEventTitle.value = "Evento desde calendario subido";
+  elements.plannerEventDescription.value = "Añadido manualmente mirando el calendario subido como referencia.";
+  elements.plannerEventDate.value = isoInput(start).slice(0, 10);
+  elements.plannerEventStartTime.value = isoInput(start).slice(11, 16);
+  elements.plannerEventEndDate.value = "";
+  elements.plannerEventEndTime.value = isoInput(end).slice(11, 16);
+  elements.plannerEventDuration.value = 45;
+  elements.plannerEventPriority.value = "media";
+  elements.plannerEventTitle.focus();
+});
+elements.plannerPlanForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  generateAutomaticPlan(
+    {
+      asignatura: elements.plannerPlanSubject.value.trim() || activeAgentState().subject,
+      bloqueTema: elements.plannerPlanTopic.value.trim() || activeAgentState().block,
+      fechaExamen: elements.plannerExamDate.value,
+      nivelInicial: elements.plannerInitialLevel.value,
+      tiempoDiario: elements.plannerDailyTime.value,
+      diasSemana: elements.plannerDaysWeek.value,
+      objetivo: elements.plannerGoal.value,
+      incluirDescansos: elements.plannerIncludeBreaks.checked,
+      incluirEjercicio: elements.plannerIncludeExercise.checked,
+    },
+    activePlannerContext()
+  );
+  renderPlanner();
+});
+elements.plannerCalendar.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-event-id]");
+  if (!button) return;
+  const plannerEvent = getPlannerEventsByContext(activePlannerContext()).find((item) => item.id === button.dataset.eventId);
+  if (plannerEvent) fillPlannerEventForm(plannerEvent);
+});
+elements.plannerCalendar.addEventListener("dragstart", (event) => {
+  const button = event.target.closest("[data-event-id]");
+  if (!button) return;
+  event.dataTransfer.setData("text/plain", button.dataset.eventId);
+});
+elements.plannerCalendar.addEventListener("dragover", (event) => {
+  if (event.target.closest("[data-date]")) event.preventDefault();
+});
+elements.plannerCalendar.addEventListener("drop", (event) => {
+  const cell = event.target.closest("[data-date]");
+  if (!cell) return;
+  event.preventDefault();
+  movePlannerEvent(event.dataTransfer.getData("text/plain"), cell.dataset.date);
+  renderPlanner();
+});
+elements.plannerEventList.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-planner-action]");
+  if (!button) return;
+  const plannerEvent = getPlannerEventsByContext(activePlannerContext()).find((item) => item.id === button.dataset.eventId);
+  if (!plannerEvent) return;
+  if (button.dataset.plannerAction === "edit") fillPlannerEventForm(plannerEvent);
+  if (button.dataset.plannerAction === "complete") openReflection(plannerEvent.id);
+  if (button.dataset.plannerAction === "delete") {
+    deletePlannerEvent(plannerEvent.id);
+    renderPlanner();
+  }
+});
+elements.plannerReflectionClose.addEventListener("click", closeReflection);
+elements.plannerReflectionForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  completePlannerEvent(elements.plannerReflectionEventId.value, {
+    entendido: elements.plannerUnderstood.value.trim(),
+    repasar: elements.plannerReviewNeeded.value.trim(),
+    dificultad: elements.plannerDifficulty.value,
+  });
+  closeReflection();
+  renderPlanner();
+});
+document.querySelectorAll("[data-plan-kind]").forEach((button) => button.addEventListener("click", () => setQuickPlanKind(button.dataset.planKind)));
+elements.quickPlanForm.addEventListener("submit", createQuickPlanPreview);
+elements.quickPlanResult.addEventListener("click", (event) => {
+  if (event.target.closest("#save-quick-plan")) saveQuickPlan();
+});
+elements.visualPendingList.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-visual-pending-action]");
+  const card = button?.closest("[data-pending-id]");
+  if (!button || !card) return;
+  handleVisualPendingAction(button.dataset.visualPendingAction, card.dataset.pendingKind, card.dataset.pendingId);
+});
+elements.materialInboxList.addEventListener("click", (event) => {
+  const card = event.target.closest("[data-inbox-item]");
+  if (!card) return;
+  selectedInboxItemKey = card.dataset.inboxItem;
+  renderMaterialInbox();
+});
+elements.materialInboxDetail.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-inbox-action]");
+  if (!button) return;
+  handleInboxAction(button.dataset.inboxAction);
+});
+[elements.inboxTypeFilter, elements.inboxSubjectFilter, elements.inboxBlockFilter, elements.inboxDateFilter].forEach((control) => {
+  control.addEventListener("change", () => {
+    selectedInboxItemKey = "";
+    renderMaterialInbox();
+  });
+});
 elements.materialSourceType.addEventListener("change", renderMaterialGeneratorFields);
 elements.materialGeneratorForm.addEventListener("submit", createGeneratedMaterial);
+elements.materialHistoryFilter.addEventListener("change", renderMaterialHistory);
+elements.materialHistoryList.addEventListener("click", (event) => {
+  const openButton = event.target.closest("[data-open-material]");
+  const printButton = event.target.closest("[data-print-history-material]");
+  const deleteButton = event.target.closest("[data-delete-material]");
+  if (openButton) openMaterialFromHistory(openButton.dataset.openMaterial);
+  if (printButton) printMaterialFromHistory(printButton.dataset.printHistoryMaterial);
+  if (deleteButton) deleteMaterialFromHistory(deleteButton.dataset.deleteMaterial);
+});
 elements.focusCreateFlashcardsErrors.addEventListener("click", createFlashcardsFromErrors);
 elements.focusCreateMockErrors.addEventListener("click", createMockFromErrors);
 elements.focusReviewMode.addEventListener("click", () => startReviewMode());
@@ -2058,6 +4060,23 @@ elements.focusDeselectFlashcards.addEventListener("click", deselectFlashcards);
 elements.focusPrintSelected.addEventListener("click", () => printFlashcards(selectedVisibleFlashcards(), true));
 elements.focusPrintAll.addEventListener("click", () => printFlashcards(activeVisibleFlashcards()));
 elements.focusPrintQa.addEventListener("click", () => printFlashcards(activeVisibleFlashcards()));
+elements.focusScheduleFlashcards.addEventListener("click", () =>
+  schedulePlannerEvent({
+    tipo: "repaso",
+    titulo: `Repaso de flashcards · ${activeArea()}`,
+    descripcion: "Sesión programada desde el módulo de flashcards.",
+    minutesFromNow: 180,
+  })
+);
+elements.focusScheduleMock.addEventListener("click", () =>
+  schedulePlannerEvent({
+    tipo: "simulacro",
+    titulo: `Simulacro · ${activeArea()}`,
+    descripcion: "Simulacro añadido desde modo foco.",
+    minutesFromNow: 240,
+    duration: 45,
+  })
+);
 elements.reviewCard.addEventListener("click", toggleReviewAnswer);
 elements.reviewFlip.addEventListener("click", toggleReviewAnswer);
 elements.reviewKnown.addEventListener("click", () => recordReview("known"));

@@ -32,6 +32,21 @@ Primera version estable visual de Estudios PRO como app educativa local, clara y
 - Interfaz más limpia: textos largos movidos a ayudas contextuales con modal `ℹ️`.
 - Rediseño visual premium con fondo suave, tarjetas de acción más atractivas, resumen del bloque y gamificación ligera.
 - Regla de apoyo visual inteligente: `required`, `optional` o `none`, con estado guardado en simulación sin generar imágenes reales.
+- Módulo `Generar material` ampliado con fuentes por tema, subtema, contenido pegado o archivos/fotos del bloque y tipos: resumen, flashcards, simulacro, conceptos clave, errores frecuentes o pack completo.
+- Impresión del material generado mediante `window.print()`, con vista limpia para guardar como PDF desde el navegador.
+- Historial de materiales generados por bloque con filtro por tipo, abrir, imprimir/PDF y eliminar.
+- Jerarquia visual por niveles con paleta adolescente elegante: azul-violeta para secciones, lavanda para apartados y azul palido para tarjetas internas.
+- Pantalla principal replanteada con el chat del profesor IA como centro y herramientas agrupadas por Material, Entrenamiento, Seguimiento y Organizacion.
+- Dashboard principal ajustado para dar mas protagonismo al chat IA, con herramientas compactas y chips rapidos bajo la conversacion.
+- Chat principal ampliable a pantalla completa con acciones simuladas por respuesta: guardar, resumir, crear flashcards, crear preguntas, marcar concepto difícil y apoyo visual.
+- Nueva memoria local de conceptos difíciles por bloque, con creación de flashcards y preguntas desde esos conceptos.
+- Planificador de Estudio Adaptativo con calendario mes/semana/día, eventos manuales, planes automáticos, reflexión, adaptación dinámica y estadísticas en `localStorage`.
+- Calendario del planificador mejorado con resumen del periodo, lista de eventos visibles, eventos multiday, duración opcional y colores por tipo.
+- Planificación bajo demanda: modo dudas por defecto, próximos eventos secundarios y propuestas de planificación que solo se guardan al confirmar.
+- Planificador flexible con modos express, programado, periodos especiales y "Qué estudio ahora".
+- Subida de calendario foto/PDF como metadato pendiente de IA real y creación manual de eventos desde esa referencia.
+- Chat con foto adjunta desde cámara o galería como metadato y sección de material visual pendiente para dudas visuales.
+- Bandeja de material para centralizar fotos, archivos, PDFs, calendarios, respuestas del chat, materiales generados y conceptos difíciles.
 - Opcion preparada para generar material desde archivos/fotos subidas del bloque, sin OCR ni analisis real.
 - Placeholders visuales para dibujos/esquemas y badges de trazabilidad de fuente.
 - Curso personalizado simulado.
