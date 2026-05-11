@@ -329,6 +329,12 @@ const elements = {
   welcomeTitle: document.querySelector("#welcome-title"),
   welcomeCopy: document.querySelector("#welcome-copy"),
   mainStats: document.querySelector("#main-stats"),
+  nextActionTitle: document.querySelector("#next-action-title"),
+  nextActionReason: document.querySelector("#next-action-reason"),
+  whatStudyNow: document.querySelector("#what-study-now"),
+  dashboardSummary: document.querySelector("#dashboard-summary"),
+  nextActionResult: document.querySelector("#next-action-result"),
+  dashboardQuickAccess: document.querySelector(".dashboard-quick-access"),
   metricProgress: document.querySelector("#metric-progress"),
   metricReviews: document.querySelector("#metric-reviews"),
   metricErrors: document.querySelector("#metric-errors"),
@@ -771,6 +777,7 @@ function renderShell() {
   elements.metricErrors.textContent = String(getAllErrors().filter((error) => error.studentId === activeAgentKey()).length);
   elements.modePill.textContent = agent.modeNames[agentState.mode];
   renderMainStats();
+  renderDashboardSummary();
 }
 
 function renderMainStats() {
@@ -801,6 +808,127 @@ function renderMainStats() {
       <em>Repaso activo</em>
     </article>
   `;
+}
+
+function activeDashboardData() {
+  const now = new Date();
+  const plannerEvents = getPlannerEventsByContext(activePlannerContext());
+  const upcomingEvents = plannerEvents
+    .filter((event) => new Date(event.fechaInicio) >= now && event.estado !== "completado")
+    .sort((a, b) => new Date(a.fechaInicio) - new Date(b.fechaInicio));
+  const errors = getErrorsByContext(activeErrorContext()).filter((error) => error.status !== "superado");
+  const concepts = getDifficultConceptsByContext(activeErrorContext()).filter((concept) => concept.status !== "superado");
+  const materials = getGeneratedMaterialsByContext(activeErrorContext()).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+  return { upcomingEvents, errors, concepts, materials };
+}
+
+function buildWhatStudyNowRecommendation() {
+  const { upcomingEvents, errors, concepts, materials } = activeDashboardData();
+  const nextEvent = upcomingEvents[0];
+  if (nextEvent) {
+    return {
+      title: `Prepara: ${nextEvent.titulo}`,
+      reason: `Tienes un evento próximo el ${new Date(nextEvent.fechaInicio).toLocaleString("es-ES")}.`,
+      action: `Dedica 25 minutos a repasar ${nextEvent.asignatura || activeAgentState().subject}${nextEvent.bloque ? ` · ${nextEvent.bloque}` : ""} y termina con 5 preguntas rápidas.`,
+      focus: "planner",
+    };
+  }
+  if (errors.length > 0) {
+    return {
+      title: `Repasa ${errors.length} error(es) frecuente(s)`,
+      reason: `La memoria de errores del bloque tiene fallos pendientes.`,
+      action: `Haz 10 minutos de corrección activa y crea flashcards desde los errores más repetidos.`,
+      focus: "errors",
+    };
+  }
+  if (concepts.length > 0) {
+    return {
+      title: `Vuelve a un concepto difícil`,
+      reason: `Hay ${concepts.length} concepto(s) marcado(s) para seguimiento.`,
+      action: `Pide al profesor IA una explicación corta de "${concepts[0].title}" y genera 3 preguntas de comprobación.`,
+      focus: "chat",
+    };
+  }
+  if (materials.length > 0) {
+    return {
+      title: `Repasa material reciente`,
+      reason: `El último material guardado es "${materials[0].topic || materials[0].materialTypeLabel || "material generado"}".`,
+      action: `Haz una lectura rápida y conviértelo en flashcards o mini-simulacro.`,
+      focus: "material",
+    };
+  }
+  return {
+    title: "Crea un plan corto de estudio",
+    reason: "Todavía no hay eventos, errores o materiales suficientes en este bloque.",
+    action: "Empieza con un plan de hoy: 25 minutos de estudio, 5 minutos de descanso y 5 preguntas de comprobación.",
+    focus: "planner",
+  };
+}
+
+function renderDashboardSummary() {
+  const { upcomingEvents, errors, concepts, materials } = activeDashboardData();
+  const latestMaterial = materials[0];
+  elements.dashboardSummary.innerHTML = `
+    <article class="summary-chip ui-level-3"><strong>${upcomingEvents.length}</strong><span>eventos próximos</span></article>
+    <article class="summary-chip ui-level-3"><strong>${latestMaterial ? "1" : "0"}</strong><span>material reciente</span></article>
+    <article class="summary-chip ui-level-3"><strong>${concepts.length}</strong><span>conceptos difíciles</span></article>
+    <article class="summary-chip ui-level-3"><strong>${errors.length}</strong><span>errores frecuentes</span></article>
+  `;
+  const recommendation = buildWhatStudyNowRecommendation();
+  elements.nextActionTitle.textContent = recommendation.title;
+  elements.nextActionReason.textContent = recommendation.reason;
+}
+
+function renderWhatStudyNowResult() {
+  const recommendation = buildWhatStudyNowRecommendation();
+  elements.nextActionResult.classList.remove("hidden");
+  elements.nextActionResult.innerHTML = `
+    <article class="recommendation-card ui-level-3">
+      <div>
+        <span class="source-badge">🎯 Recomendación simulada</span>
+        <h4>${escapeHtml(recommendation.title)}</h4>
+        <p><strong>Motivo:</strong> ${escapeHtml(recommendation.reason)}</p>
+        <p><strong>Acción recomendada:</strong> ${escapeHtml(recommendation.action)}</p>
+      </div>
+      <div class="recommendation-actions">
+        <button class="secondary-button" type="button" data-dashboard-action="chat">Ir al chat</button>
+        <button class="secondary-button" type="button" data-dashboard-action="material">Crear material</button>
+        <button class="secondary-button" type="button" data-dashboard-action="planner">Ver planificación</button>
+        <button class="secondary-button" type="button" data-dashboard-action="flashcards">Hacer flashcards</button>
+      </div>
+    </article>
+  `;
+}
+
+function handleDashboardAction(action) {
+  if (action === "chat") {
+    setChatExpanded(true);
+    elements.chatInput.focus();
+    return;
+  }
+  if (action === "material") {
+    openToolScreen("generateMaterial");
+    renderMaterialGeneratorFields();
+    renderMaterialResult();
+    return;
+  }
+  if (action === "planner") {
+    openToolScreen("planner");
+    renderPlanner();
+    return;
+  }
+  if (action === "flashcards") {
+    createFlashcards();
+    return;
+  }
+  if (action === "mock") {
+    createMock();
+    return;
+  }
+  if (action === "errors") {
+    openToolScreen("errors");
+    renderErrors();
+  }
 }
 
 function renderCourses() {
@@ -3764,6 +3892,17 @@ elements.showMaterialGenerator.addEventListener("click", () => {
   openToolScreen("generateMaterial");
   renderMaterialGeneratorFields();
   renderMaterialResult();
+});
+elements.whatStudyNow.addEventListener("click", renderWhatStudyNowResult);
+elements.dashboardQuickAccess.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-dashboard-action]");
+  if (!button) return;
+  handleDashboardAction(button.dataset.dashboardAction);
+});
+elements.nextActionResult.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-dashboard-action]");
+  if (!button) return;
+  handleDashboardAction(button.dataset.dashboardAction);
 });
 elements.plannedMode.addEventListener("click", () => setMode("planned"));
 elements.rapidMode.addEventListener("click", () => setMode("rapid"));

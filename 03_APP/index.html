@@ -63,6 +63,45 @@
 
           <div id="main-stats" class="main-stats" aria-label="Resumen del bloque"></div>
 
+          <section class="student-overview ui-level-2" aria-label="Siguiente mejor acción">
+            <article class="next-action-card ui-level-1">
+              <div>
+                <span class="ui-level-label level-1">Siguiente mejor acción</span>
+                <h3 id="next-action-title">¿Qué estudio ahora?</h3>
+                <p id="next-action-reason">Pulsa el botón para recibir una recomendación simulada según tus datos locales.</p>
+              </div>
+              <button id="what-study-now" class="primary-button ui-action-primary" type="button">¿Qué estudio ahora?</button>
+            </article>
+            <div id="dashboard-summary" class="dashboard-summary" aria-label="Resumen breve"></div>
+            <div id="next-action-result" class="next-action-result hidden" aria-live="polite"></div>
+            <nav class="dashboard-quick-access" aria-label="Accesos rápidos">
+              <button class="secondary-button compact-tool-button ui-action-secondary" type="button" data-dashboard-action="chat">
+                <strong>Chat IA</strong>
+                <span>Preguntar una duda.</span>
+              </button>
+              <button class="secondary-button compact-tool-button ui-action-secondary" type="button" data-dashboard-action="material">
+                <strong>Generar material</strong>
+                <span>Resumen, tarjetas o test.</span>
+              </button>
+              <button class="secondary-button compact-tool-button ui-action-secondary" type="button" data-dashboard-action="planner">
+                <strong>Planificador</strong>
+                <span>Ver calendario.</span>
+              </button>
+              <button class="secondary-button compact-tool-button ui-action-secondary" type="button" data-dashboard-action="flashcards">
+                <strong>Flashcards</strong>
+                <span>Repaso activo.</span>
+              </button>
+              <button class="secondary-button compact-tool-button ui-action-secondary" type="button" data-dashboard-action="mock">
+                <strong>Simulacros</strong>
+                <span>Preguntas de examen.</span>
+              </button>
+              <button class="secondary-button compact-tool-button ui-action-secondary" type="button" data-dashboard-action="errors">
+                <strong>Memoria de errores</strong>
+                <span>Fallos frecuentes.</span>
+              </button>
+            </nav>
+          </section>
+
           <section class="study-dashboard" aria-label="Panel de estudio">
             <article class="ai-chat-hub ui-level-1" aria-labelledby="chat-hub-title">
               <div class="chat-hub-header">

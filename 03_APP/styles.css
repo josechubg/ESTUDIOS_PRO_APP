@@ -324,6 +324,129 @@ h3 {
   margin: 8px 0 22px;
 }
 
+.student-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+  gap: 12px;
+  margin: 0 0 18px;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--level-2-bg) 54%, var(--line));
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--primary-action) 12%, transparent), transparent 34%),
+    color-mix(in srgb, var(--level-2-bg) 20%, #ffffff);
+  box-shadow: var(--shadow-soft);
+}
+
+.next-action-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid color-mix(in srgb, var(--level-1-bg) 30%, var(--line));
+  border-radius: 22px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--level-1-bg) 92%, #ffffff), color-mix(in srgb, var(--primary-action) 72%, var(--level-1-bg)));
+  color: var(--level-1-text);
+}
+
+.next-action-card h3,
+.next-action-card p {
+  margin: 0;
+}
+
+.next-action-card h3 {
+  margin-top: 6px;
+  font-size: clamp(1.25rem, 2vw, 1.65rem);
+}
+
+.next-action-card p {
+  margin-top: 6px;
+  color: color-mix(in srgb, var(--level-1-text) 86%, transparent);
+  line-height: 1.45;
+}
+
+.next-action-card .ui-level-label {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+.next-action-card .primary-button {
+  background: #ffffff;
+  color: var(--level-1-bg);
+  box-shadow: none;
+  white-space: nowrap;
+}
+
+.dashboard-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.summary-chip {
+  display: grid;
+  gap: 4px;
+  min-height: 82px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--level-3-bg) 80%, var(--line));
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.summary-chip strong {
+  color: var(--level-1-bg);
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.summary-chip span {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.next-action-result {
+  grid-column: 1 / -1;
+}
+
+.recommendation-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--primary-action) 24%, var(--line));
+  border-radius: 20px;
+  background: #ffffff;
+}
+
+.recommendation-card h4 {
+  margin: 9px 0 6px;
+}
+
+.recommendation-card p {
+  margin: 4px 0;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.recommendation-actions,
+.dashboard-quick-access {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dashboard-quick-access {
+  grid-column: 1 / -1;
+}
+
+.dashboard-quick-access .compact-tool-button {
+  flex: 1 1 150px;
+}
+
 .stat-card {
   display: grid;
   gap: 5px;
@@ -423,6 +546,7 @@ textarea:focus {
 .setup-card.tool-open > .ui-level-label,
 .setup-card.tool-open .select-row,
 .setup-card.tool-open .main-stats,
+.setup-card.tool-open .student-overview,
 .setup-card.tool-open .primary-actions,
 .setup-card.tool-open .study-dashboard {
   display: none;
@@ -579,6 +703,7 @@ textarea:focus {
 .setup-card.chat-expanded > .ui-level-label,
 .setup-card.chat-expanded .select-row,
 .setup-card.chat-expanded .main-stats,
+.setup-card.chat-expanded .student-overview,
 .setup-card.chat-expanded .study-tools-panel {
   display: none;
 }
@@ -2573,6 +2698,7 @@ body[data-agent-theme="gonzalo"] {
   .select-row,
   .primary-actions,
   .study-dashboard,
+  .student-overview,
   .main-stats,
   .file-detail-grid,
   .upload-choice-grid,
@@ -2630,8 +2756,18 @@ body[data-agent-theme="gonzalo"] {
   .material-inbox-filters,
   .material-inbox-layout,
   .inbox-meta,
+  .recommendation-card,
   .planner-period-summary {
     grid-template-columns: 1fr;
+  }
+
+  .next-action-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .next-action-card .primary-button {
+    width: 100%;
   }
 
   .material-history-header {
