@@ -1,5 +1,10 @@
 import { loadAppState, saveAppState } from "./services/storageService.js";
-import { buildSimulatedAnswer as buildAIResponse } from "./services/aiService.js";
+import {
+  generarMaterial as generarMaterialIA,
+  generarSimulacro,
+  recomendarQueEstudioAhora,
+  responderChat,
+} from "./services/aiService.js?v=ia-architecture";
 import {
   addError,
   deleteError,
@@ -20,7 +25,6 @@ import {
 } from "./services/flashcardReviewService.js";
 import {
   buildCoursePlan as buildSimulatedCoursePlan,
-  createMockForArea,
 } from "./services/courseService.js";
 import { createFlashcardsForArea } from "./services/flashcardService.js";
 import {
@@ -31,7 +35,6 @@ import {
 } from "./services/fileStorageService.js";
 import {
   deleteGeneratedMaterial,
-  generateStudyMaterial,
   getAllGeneratedMaterials,
   getGeneratedMaterialsByContext,
   saveGeneratedMaterial,
@@ -565,6 +568,7 @@ function getAgentDefaults(agentKey) {
     flashcards: [],
     customCourses: [],
     mocks: [],
+    mockAttempts: [],
     files: [],
     visualSupport: {},
   };
@@ -828,45 +832,14 @@ function activeDashboardData() {
 
 function buildWhatStudyNowRecommendation() {
   const { upcomingEvents, errors, concepts, materials } = activeDashboardData();
-  const nextEvent = upcomingEvents[0];
-  if (nextEvent) {
-    return {
-      title: `Prepara: ${nextEvent.titulo}`,
-      reason: `Tienes un evento próximo el ${new Date(nextEvent.fechaInicio).toLocaleString("es-ES")}.`,
-      action: `Dedica 25 minutos a repasar ${nextEvent.asignatura || activeAgentState().subject}${nextEvent.bloque ? ` · ${nextEvent.bloque}` : ""} y termina con 5 preguntas rápidas.`,
-      focus: "planner",
-    };
-  }
-  if (errors.length > 0) {
-    return {
-      title: `Repasa ${errors.length} error(es) frecuente(s)`,
-      reason: `La memoria de errores del bloque tiene fallos pendientes.`,
-      action: `Haz 10 minutos de corrección activa y crea flashcards desde los errores más repetidos.`,
-      focus: "errors",
-    };
-  }
-  if (concepts.length > 0) {
-    return {
-      title: `Vuelve a un concepto difícil`,
-      reason: `Hay ${concepts.length} concepto(s) marcado(s) para seguimiento.`,
-      action: `Pide al profesor IA una explicación corta de "${concepts[0].title}" y genera 3 preguntas de comprobación.`,
-      focus: "chat",
-    };
-  }
-  if (materials.length > 0) {
-    return {
-      title: `Repasa material reciente`,
-      reason: `El último material guardado es "${materials[0].topic || materials[0].materialTypeLabel || "material generado"}".`,
-      action: `Haz una lectura rápida y conviértelo en flashcards o mini-simulacro.`,
-      focus: "material",
-    };
-  }
-  return {
-    title: "Crea un plan corto de estudio",
-    reason: "Todavía no hay eventos, errores o materiales suficientes en este bloque.",
-    action: "Empieza con un plan de hoy: 25 minutos de estudio, 5 minutos de descanso y 5 preguntas de comprobación.",
-    focus: "planner",
-  };
+  return recomendarQueEstudioAhora({
+    upcomingEvents,
+    errors,
+    concepts,
+    materials,
+    agentState: activeAgentState(),
+    area: activeArea(),
+  });
 }
 
 function renderDashboardSummary() {
@@ -2486,7 +2459,7 @@ function handleVisualPendingAction(action, kind, id) {
   }
   if (action === "material") {
     const title = item.nombreArchivo || item.fileName || activeArea();
-    const material = generateStudyMaterial({
+    const material = generarMaterialIA({
       sourceType: "uploaded_files",
       topic: title,
       subtopic: activeAgentState().block || "",
@@ -2906,7 +2879,7 @@ function inboxItemContext(item) {
 }
 
 function createMaterialFromInboxItem(item, materialType) {
-  const material = generateStudyMaterial({
+  const material = generarMaterialIA({
     sourceType: "topic",
     topic: item.associatedTopic || item.title || activeArea(),
     subtopic: "",
@@ -3333,7 +3306,7 @@ function createGeneratedMaterial(event) {
     return;
   }
 
-  const material = generateStudyMaterial({
+  const material = generarMaterialIA({
     sourceType,
     topic,
     subtopic,
@@ -3399,6 +3372,143 @@ function activeGeneratedFlashcards() {
 function activeGeneratedMock() {
   const context = activeErrorContext();
   return activeAgentState().mocks.find((mock) => mock.area === state.focus?.area && Array.isArray(mock.questions) && resourceBelongsToActiveContext(mock, context));
+}
+
+function currentMockExam() {
+  if (state.focus?.type !== "mock") return null;
+  let mock = activeGeneratedMock();
+  if (!mock) {
+    mock = generarSimulacro({
+      context: activeErrorContext(),
+      area: state.focus.area,
+      studentId: activeAgentKey(),
+      source: "manual",
+    });
+    activeAgentState().mocks.unshift(mock);
+    saveState();
+  }
+  return {
+    ...mock,
+    questions: (mock.questions || []).slice(0, 5),
+  };
+}
+
+function renderMockExam(mock) {
+  const context = activeFileContext();
+  const questions = mock?.questions || [];
+  elements.focusExplanation.innerHTML = `
+    <div class="mock-exam-panel">
+      <div class="mock-exam-intro ui-level-2">
+        <span class="source-badge">🧪 Simulacro en modo simulación</span>
+        <h2>Simulacro de examen</h2>
+        <p>${escapeHtml(context.courseName)} · ${escapeHtml(context.subjectName)} · ${escapeHtml(context.subblockName || "Bloque general")}</p>
+        <p>Responde como si fuera una prueba corta. Al corregir verás aciertos, fallos, explicación breve y conceptos a repasar.</p>
+      </div>
+      <form id="mock-exam-form" class="mock-exam-form">
+        ${questions
+          .map(
+            (question, questionIndex) => `
+              <fieldset class="mock-question ui-level-3">
+                <legend>${questionIndex + 1}. ${escapeHtml(question.statement || question.prompt || "Pregunta simulada")}</legend>
+                <div class="mock-options">
+                  ${(question.options || ["Respuesta breve razonada", "No lo sé"])
+                    .map(
+                      (option, optionIndex) => `
+                        <label class="exam-option">
+                          <input type="radio" name="question-${questionIndex}" value="${String.fromCharCode(65 + optionIndex)}" data-answer="${escapeHtml(option)}" />
+                          <span class="exam-option-letter">${String.fromCharCode(65 + optionIndex)}.</span>
+                          <span class="exam-option-text">${escapeHtml(option)}</span>
+                        </label>
+                      `
+                    )
+                    .join("")}
+                </div>
+              </fieldset>
+            `
+          )
+          .join("")}
+      </form>
+      <div class="mock-exam-actions">
+        <button class="primary-button ui-action-primary" type="button" data-mock-action="correct">Corregir simulacro</button>
+        <button class="secondary-button ui-action-secondary" type="button" data-mock-action="save">Guardar intento</button>
+        <button class="secondary-button ui-action-secondary" type="button" data-mock-action="calendar">Añadir repaso al calendario</button>
+      </div>
+      <div id="mock-exam-result" class="mock-exam-result" aria-live="polite"></div>
+    </div>
+  `;
+}
+
+function readMockExamAnswers() {
+  return Array.from(elements.focusExplanation.querySelectorAll(".mock-question")).map((questionNode, index) => {
+    const selected = questionNode.querySelector(`input[name="question-${index}"]:checked`);
+    return selected?.dataset.answer || "";
+  });
+}
+
+function correctMockExam({ saveAttempt = false } = {}) {
+  const mock = currentMockExam();
+  if (!mock) return null;
+  const answers = readMockExamAnswers();
+  const corrections = mock.questions.map((question, index) => {
+    const selected = answers[index];
+    const correct = selected === question.correctAnswer;
+    return {
+      question: question.statement || question.prompt,
+      selected,
+      correctAnswer: question.correctAnswer,
+      explanation: question.explanation || "Corrección simulada.",
+      correct,
+      concept: question.errorType || question.topic || activeArea(),
+    };
+  });
+  const hits = corrections.filter((item) => item.correct).length;
+  const misses = corrections.length - hits;
+  const attempt = {
+    id: crypto.randomUUID ? crypto.randomUUID() : `mock-attempt-${Date.now()}`,
+    mockId: mock.id || mock.title,
+    area: activeArea(),
+    context: activeErrorContext(),
+    answers,
+    hits,
+    misses,
+    total: corrections.length,
+    createdAt: new Date().toISOString(),
+  };
+  if (saveAttempt) {
+    activeAgentState().mockAttempts.unshift(attempt);
+    saveState();
+  }
+  renderMockExamCorrection(corrections, attempt, saveAttempt);
+  return attempt;
+}
+
+function renderMockExamCorrection(corrections, attempt, saved = false) {
+  const result = elements.focusExplanation.querySelector("#mock-exam-result");
+  if (!result) return;
+  const concepts = corrections.filter((item) => !item.correct).map((item) => item.concept || activeArea());
+  result.innerHTML = `
+    <article class="mock-correction ui-level-2">
+      <span class="source-badge">${saved ? "Intento guardado" : "Corrección simulada"}</span>
+      <h3>Resultado: ${attempt.hits}/${attempt.total} aciertos</h3>
+      <p><strong>Fallos:</strong> ${attempt.misses}. ${attempt.misses ? "Repasa los conceptos marcados antes de repetir el simulacro." : "Buen intento: consolida con un repaso breve."}</p>
+      <div class="mock-correction-list">
+        ${corrections
+          .map(
+            (item, index) => `
+              <section class="ui-level-3">
+                <strong>${index + 1}. ${item.correct ? "Correcta" : "A revisar"}</strong>
+                <p>Tu respuesta: ${escapeHtml(item.selected || "sin responder")}</p>
+                <p>Correcta: ${escapeHtml(item.correctAnswer || "respuesta razonada")}</p>
+                <p>${escapeHtml(item.explanation)}</p>
+              </section>
+            `
+          )
+          .join("")}
+      </div>
+      <p><strong>Conceptos a repasar:</strong> ${escapeHtml(concepts.length ? [...new Set(concepts)].join(", ") : activeArea())}</p>
+      <button class="secondary-button ui-action-secondary" type="button" data-mock-action="flashcards-errors">Crear flashcards desde errores</button>
+    </article>
+  `;
 }
 
 function activeBaseFlashcards() {
@@ -3730,7 +3840,7 @@ function renderReviews() {
 
 function buildSimulatedAnswer(question, scoped = false) {
   const agentState = activeAgentState();
-  return buildAIResponse({
+  return responderChat({
     agentKey: activeAgentKey(),
     agent: activeAgent(),
     modeName: activeAgent().modeNames[agentState.mode],
@@ -3798,7 +3908,12 @@ function createFlashcards() {
 
 function createMock() {
   const agentState = activeAgentState();
-  const created = createMockForArea({ area: activeArea(), studyData: getStudyData() });
+  const created = generarSimulacro({
+    context: activeErrorContext(),
+    area: activeArea(),
+    studentId: activeAgentKey(),
+    source: "manual",
+  });
   agentState.mocks.unshift(created);
   addAgentMessage(`Simulacro creado: ${created.title}.`);
   saveState();
@@ -3832,20 +3947,33 @@ function exitFocusMode() {
 function renderFocus() {
   if (!state.focus) return;
   const data = getStudyData(state.focus.area);
+  const isMockMode = state.focus.type === "mock";
   const typeLabels = {
     planned: activeAgent().modeNames.planned,
     rapid: activeAgent().modeNames.rapid,
     course: "Curso personalizado",
-    mock: "Simulacro",
+    mock: "Simulacro de examen",
     flashcards: "Flashcards",
   };
   const focusTitle = typeLabels[state.focus.type] || "Modo foco";
+  elements.focusView.classList.toggle("mock-exam-mode", isMockMode);
+  const focusLevelLabel = elements.focusView.querySelector(".focus-header .ui-level-label");
+  if (focusLevelLabel) focusLevelLabel.textContent = isMockMode ? "Nivel 1 · Simulacro" : "Nivel 1 · Modo foco";
   elements.exitFocus.textContent = "← Volver al panel principal";
   elements.focusKicker.textContent = `${activeAgent().name} · ${state.focus.area}`;
   elements.focusTitle.textContent = focusTitle;
-  elements.focusSubtitle.textContent = "Modo foco activo.";
+  elements.focusSubtitle.textContent = isMockMode ? "Examen simulado, sin chat ni ayuda del profesor." : "Modo foco activo.";
   elements.focusProgressPill.textContent = `${state.focus.progress}%`;
   elements.focusTaskTitle.textContent = `${focusTitle} · ${state.focus.area}`;
+  if (isMockMode) {
+    renderMockExam(currentMockExam());
+    elements.focusExercises.innerHTML = "";
+    elements.focusErrors.innerHTML = "";
+    data.insights.filter(([title]) => title.includes("Errores")).forEach(([, text]) => addItemCard(elements.focusErrors, "Vigila", text));
+    renderFocusFlashcards();
+    elements.focusChatMessages.innerHTML = "";
+    return;
+  }
   const visual = getVisualResourcesByContext(activeErrorContext())[0] || createSimulatedVisualResource({
     context: activeErrorContext(),
     topic: state.focus.area,
@@ -4427,6 +4555,23 @@ elements.focusScheduleMock.addEventListener("click", () =>
     duration: 45,
   })
 );
+elements.focusView.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-mock-action]");
+  if (!button) return;
+  const action = button.dataset.mockAction;
+  if (action === "correct") correctMockExam();
+  if (action === "save") correctMockExam({ saveAttempt: true });
+  if (action === "calendar") {
+    schedulePlannerEvent({
+      tipo: "simulacro",
+      titulo: `Repaso de simulacro · ${activeArea()}`,
+      descripcion: "Repaso programado desde el simulacro de examen.",
+      minutesFromNow: 240,
+      duration: 30,
+    });
+  }
+  if (action === "flashcards-errors") createFlashcardsFromErrors();
+});
 elements.reviewCard.addEventListener("click", toggleReviewAnswer);
 elements.reviewFlip.addEventListener("click", toggleReviewAnswer);
 elements.reviewKnown.addEventListener("click", () => recordReview("known"));
